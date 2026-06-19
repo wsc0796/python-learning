@@ -66,7 +66,48 @@ print(p.model_dump_json())   # {"id": 1, "name": "鼠标", "price": 99.9}
 # 从字典创建
 data = {"id": 2, "name": "键盘", "price": 299.0}
 p2 = Product(**data)         # 解包字典传参
+
+# 从外部数据校验后创建（比 **data 更安全）
+p3 = Product.model_validate({"id": 3, "name": "耳机", "price": 199.0})
 ```
+
+### model_validate() —— 字典 → 对象（带校验）
+
+适合从文件、API、用户输入等不信任的数据源读取时使用。
+和 `**data` 的区别：`**data` 不校验，脏字段照收；`model_validate()` 会完整校验。
+
+### model_copy() —— 建副本，改部分字段
+
+```python
+p = Product(id=1, name="鼠标", price=99.9)
+p2 = p.model_copy(update={"price": 59.9})
+# p2.price=59.9, p 不变
+```
+
+### model_validate_json() —— JSON 字符串 → 对象
+
+```python
+raw_json = '{"id": 1, "name": "鼠标", "price": 99.9}'
+p = Product.model_validate_json(raw_json)   # JSON字符串一步到位转对象
+```
+等价于 `Product.model_validate(json.loads(raw_json))`，但更简洁。
+
+### 五个方法的完整版图
+
+```
+                       model_validate()
+             字典 ◄──────────────────────► 对象
+              ▲          model_dump()       │
+              │                             │
+  json.loads │ model_validate_json   model_dump_json │ json.dumps
+              │            ()               │   ()
+              │                             │
+              │                             ▼
+         JSON 字符串 ◄────────────────── JSON 字符串
+              (无直接反向转换，用 model_validate_json)
+```
+
+实际项目中最常用的是 `model_dump()`、`model_validate()`、`model_copy()` 三个。
 
 ## 4. 嵌套模型
 

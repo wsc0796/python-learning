@@ -8,7 +8,7 @@ aliases:
 > 目标：能独立写出带参数和返回值的函数
 > 用时：约 12 分钟
 
-相关笔记：[闭包与装饰器](../11-closure-decorator/theory_11_closure_decorator.md) · [作用域规则 · *args · **kwargs](../16-python-gaps/theory_16_python_gaps.md)
+相关笔记：[递归函数](./theory_25_recursion.md) · [闭包与装饰器](../11-closure-decorator/theory_11_closure_decorator.md) · [作用域规则 · *args · **kwargs](../16-python-gaps/theory_16_python_gaps.md) · [课堂老师函数程序对照](../00-学习路线/课堂老师程序-函数专题对照.md)
 
 ---
 
@@ -173,15 +173,97 @@ print(calculate_bmi.__doc__)  # 直接获取文档文本
 
 ## 六、类型提示（Type Hints）
 
+### 1. 基础语法
+
 ```python
-# 参数:类型   -> 返回类型
+# 变量注解：变量名: 类型 = 值
+name: str = "张三"
+age: int = 20
+
+# 函数参数注解：参数名: 类型
+# 返回类型注解：-> 类型
 def greet(name: str, age: int) -> str:
     return f"{name} 今年 {age} 岁"
 
 print(greet("张三", 20))   # 张三 今年 20 岁
 ```
 
-类型提示**不会报错**（即使传了 int 也不会报错），但能让代码更清晰，IDE 提示更好。
+写法：**变量名在前，冒号，类型**。`变量名: 类型` 读作"这个变量的类型是"。
+
+```python
+price: float = 99.8          # 浮点数
+is_active: bool = True       # 布尔值
+tags: list[str] = ["a", "b"] # 字符串列表
+```
+
+### 2. 联合类型：一个字段可能是多种类型
+
+```python
+# str | None  = "可以是字符串，也可以是 None（空）"
+content: str | None = None
+
+# 等价的老写法：
+from typing import Optional
+content: Optional[str] = None
+```
+
+**"为什么类型写在变量名后面？"**
+
+> Python 语法设计就是 `变量名: 类型`，不是 `类型 变量名`（后者是 Java/C 的写法）。
+> 
+> Java: `String name = "张三"`
+> Python: `name: str = "张三"`
+>
+> 读法一样：**"name 这个变量，类型是 str，值是'张三'"**。
+
+### 3. 为什么类型注解很重要
+
+```python
+# 没有类型注解：你猜这个函数需要什么参数？
+def process(data, config):
+    pass
+
+# 有类型注解：一眼就知道要什么
+def process(data: list[int], config: dict[str, str]) -> bool:
+    pass
+```
+
+类型注解的好处：
+1. **IDE 自动补全**（输入 `data.` 会弹出列表方法）
+2. **代码自文档化**（不用看函数体就知道参数要求）
+3. **Pydantic 用类型做校验**（`content: str` → 自动校验传进来的是不是字符串）
+4. **mypy 静态检查**（在运行前发现类型不匹配）
+
+### 4. 常见类型写法速查
+
+```python
+# 基础类型
+name: str = "abc"
+count: int = 42
+ratio: float = 3.14
+done: bool = True
+
+# 容器类型（Python 3.9+ 可以直接用，不用从 typing 导入）
+items: list[int] = [1, 2, 3]
+mapping: dict[str, int] = {"a": 1}
+unique: set[str] = {"x", "y"}
+pair: tuple[str, int] = ("abc", 42)
+
+# 联合类型（Python 3.10+）
+maybe: str | None = None
+value: int | str = 42  # 可以是整数，也可以是字符串
+
+# 在 Pydantic 中的实际应用
+class NoteCreate(BaseModel):
+    content: str                     # 必填，必须是字符串
+
+class NoteUpdate(BaseModel):
+    content: str | None = None       # 可选，可以是字符串或空
+```
+
+### 5. 重要提醒
+
+类型注解**不会影响运行**——即使你标注 `name: str` 然后赋值数字，Python 也不会报错。它是给**人**和**工具**看的约定。
 
 ---
 

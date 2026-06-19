@@ -12,6 +12,7 @@ Day 3 练习：文件读写 + 异常处理
 # 注意：encoding="utf-8"
 # 在这里写：
 
+
 with open("test_output.txt","w",encoding="utf-8") as f:
     f.write("hello world\n")
     f.write("test_output.txt\n")
@@ -21,10 +22,9 @@ with open("test_output.txt","w",encoding="utf-8") as f:
 # 然后去文件夹打开 test_output.txt，对比 "w" 和 "a" 的区别
 # 在这里写：
 with open("test_output.txt","a",encoding="utf-8") as f:
-    f.write("增加的一行\n")
+    f.write("增加\n")
 
-
-
+with open("test_output.txt","a",encoding="utf-8") as f:
 # ============================================================
 # 第二组：文件读取（必做）
 # ============================================================

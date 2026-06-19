@@ -1,11 +1,11 @@
 ---
 date: 2026-06-13
-version: V2
+version: V2.1
 target_ai: Codex / Claude Code
 usage: 每个 Phase 可单独交给 AI 执行，但必须以前一 Phase 验收通过为前置条件
 ---
 
-# Agentic Internship Coach —— AI 可执行规格书 V2
+# Agentic Internship Coach —— AI 可执行规格书 V2.1
 
 ## 项目定位
 
@@ -14,6 +14,7 @@ Agentic Internship Coach 是一个面向后端实习求职的 FastAPI 项目：
 - 第一阶段先做成一个稳定、可测试、可启动的求职投递管理后端。
 - 第二阶段加入 LLM 岗位匹配、调用日志和 Redis 缓存。
 - 第三阶段再加入关键词 RAG 和受控工具调用 Agent。
+- 第四阶段再对齐课程中的 LangChain、Milvus、BM25、DeepSeek 原理和综合项目扩展。
 
 这不是一次性堆功能的 Demo，而是一个可以分阶段提交到 GitHub、可在面试中解释架构演进的作品集项目。
 
@@ -26,9 +27,39 @@ Agentic Internship Coach 是一个面向后端实习求职的 FastAPI 项目：
 数据库：SQLite 优先，MySQL 作为后续扩展，不纳入当前 MVP
 缓存：Redis
 LLM：OpenAI-compatible API，默认 DeepSeek
+Agent：先手写受控 Function Call / ReAct Loop，后续可迁移 LangChain 或 LangGraph
+RAG：先关键词检索，后续可升级 BM25 + Milvus 向量检索
 架构：routes -> services -> repositories -> models
 测试：pytest + pytest-cov，外部服务全部 mock/fake
 ```
+
+## 课程知识映射与边界
+
+用户当前课程包含“大模型开发与应用”和“综合项目”。本项目吸收课程知识，但分成两类：
+
+- MVP 必做：能直接增强后端项目，并且容易测试、展示、讲清楚。
+- 进阶选做：适合课程学习、面试扩展、二期项目，不阻塞主线交付。
+
+| 课程内容 | 本项目落点 | 是否进入 MVP |
+| --- | --- | --- |
+| Function Call 工作原理、外部函数定义、多函数调用 | Phase 9 的工具白名单、参数校验、数据库查询工具 | 是 |
+| AI Agent 基本原理、邮件自动发送案例 | Phase 9 做受控 ReAct Agent；邮件自动发送只作为后续扩展，不默认发送真实邮件 | 是，邮件为选做 |
+| RAG 系统介绍 | Phase 7 关键词 RAG MVP | 是 |
+| Milvus Collection、向量增删改查 | Phase 10 作为向量 RAG 进阶 | 否，二期 |
+| RAG 优化与评估 | Phase 7 先做来源返回；Phase 10 加召回率、命中率、人工评测集 | 部分进入 |
+| Flash Attention、MLA、MoE | 写入 README 或学习笔记，用于解释模型能力，不在后端代码中实现 | 否 |
+| BM25 | Phase 7 可从简单 TF 升级到 BM25；不影响接口 | 可选 |
+| DeepSeek V1/V2/Math/V3/R1 | Phase 5 使用 DeepSeek-compatible API；模型原理作为学习说明 | 部分进入 |
+| LangChain LLMs / ChatModels / Prompt / Chains | Phase 11 作为手写 LLM/RAG/Agent 的替代实现对照 | 否，二期 |
+| LangChain Agent / Memory / Indexes | Phase 11 迁移实验，不替代 MVP 主线 | 否，二期 |
+| 物流行业 RAG 系统 | Phase 12 可复用 RAG 架构做领域版 RAG | 否，作品集扩展 |
+| 评论智能分类与信息抽取系统 | Phase 12 可做独立 NLP/LLM 抽取项目，不塞进主项目 | 否，作品集扩展 |
+
+原则：
+
+- 不把 LangChain、Milvus、模型微调一开始塞进 MVP。
+- 先自己实现轻量 LLM Client、RAG、Function Call Loop，学清楚底层流程。
+- 等主项目可运行、可测试、可展示后，再用 LangChain/Milvus 做二期迁移或扩展。
 
 ## 全局执行规则
 
@@ -491,6 +522,18 @@ def chat_completion(
 
 第一版可以使用同步客户端。若后续改为 `AsyncOpenAI`，必须统一调整所有 LLM Service。
 
+### Function Call 学习落点
+
+本 Phase 先不使用 OpenAI SDK 原生 `tools/function_call`，而是通过普通 Chat Completion 返回结构化 JSON，练清楚：
+
+- 如何定义输入 Schema。
+- 如何约束模型输出。
+- 如何做 JSON 解析和 Pydantic 校验。
+- 如何把模型错误映射成 HTTP 502。
+- 如何记录调用日志。
+
+原生 Function Call 放到 Phase 9 的 Agent 工具调用中对齐。
+
 ### 岗位匹配接口
 
 ```text
@@ -646,6 +689,12 @@ pytest -v --cov=src --cov-report=term-missing --cov-fail-under=80
 jieba
 ```
 
+可选进阶：
+
+```text
+rank-bm25
+```
+
 ### 必须创建/修改的文件
 
 ```text
@@ -715,6 +764,8 @@ RAG 响应：
 - `retrieve(query, top_k=5) -> list[dict]`。
 - 未检索到内容时返回可解释答案，不编造来源。
 - 长文档先按固定长度切片，保留标题作为来源。
+- 如果课程已经学到 BM25，可以在不改变 API 的前提下新增 `bm25_retriever.py`，用 BM25 替换简单词频打分。
+- 本 Phase 不引入 Milvus。Milvus 放到 Phase 10，避免数据库、向量索引和 RAG 一起失控。
 
 ### 验收命令
 
@@ -780,7 +831,7 @@ alembic upgrade head
 pytest -v --cov=src --cov-report=term-missing --cov-fail-under=80
 ```
 
-## Phase 9：受控 ReAct Agent
+## Phase 9：受控 Function Call / ReAct Agent
 
 ### 前置条件
 
@@ -790,6 +841,14 @@ pytest -v --cov=src --cov-report=term-missing --cov-fail-under=80
 ### 目标
 
 实现一个受控工具调用 Agent，根据岗位和简历缺口生成学习计划。第一版优先稳定、可测、可解释，不追求复杂自治。
+
+这对应课程里的 Function Call 和 AI Agent：
+
+- 外部函数定义：用工具白名单和 Pydantic 参数模型表示。
+- 意图澄清：缺少 `job_id` 或 `resume_id` 时返回可解释错误或追问信息。
+- 多函数调用：允许多轮调用不同工具，但每轮只允许一个工具。
+- 数据库查询实现：工具内部调用 Repository/Service 查询 Job、Resume、KnowledgeDocument、StudyTask。
+- 有副作用函数：`create_study_task` 必须受 `create_tasks` 开关控制。
 
 ### 必须创建/修改的文件
 
@@ -839,6 +898,32 @@ get_resume_skills(resume_id: int)
 search_learning_notes(query: str)
 create_study_task(title: str, priority: str, description: str, related_job_id: int | None)
 ```
+
+### 工具定义格式
+
+每个工具必须有独立参数 Schema，避免让 LLM 直接传任意 dict：
+
+```python
+class GetJobRequirementsArgs(BaseModel):
+    job_id: int
+
+class SearchLearningNotesArgs(BaseModel):
+    query: str = Field(min_length=1)
+```
+
+工具注册表示例：
+
+```python
+TOOLS = {
+    "get_job_requirements": ToolSpec(
+        description="获取指定岗位的技能要求",
+        args_model=GetJobRequirementsArgs,
+        function=get_job_requirements,
+    )
+}
+```
+
+如果后续切换 OpenAI 原生 Function Calling 或 LangChain Tools，这个注册表可以作为迁移入口。
 
 ### 工具副作用规则
 
@@ -911,6 +996,167 @@ alembic downgrade -1
 alembic upgrade head
 pytest -v --cov=src --cov-report=term-missing --cov-fail-under=80
 ```
+
+---
+
+# 里程碑 4：课程进阶扩展（不阻塞 MVP）
+
+目标：把课程中的 LangChain、Milvus、RAG 优化、DeepSeek 原理和综合项目沉淀成二期能力。只有当 Phase 1-9 已经稳定后，才进入本里程碑。
+
+## Phase 10：BM25 + Milvus 向量 RAG
+
+### 前置条件
+
+- Phase 7 关键词 RAG 已完成。
+- 已有一批 KnowledgeDocument 测试数据。
+- README 已明确当前项目是关键词 RAG MVP。
+
+### 目标
+
+把 RAG 从简单关键词检索升级为“关键词 + 向量”的混合检索：
+
+- BM25 负责关键词召回。
+- Embedding + Milvus 负责语义召回。
+- Rerank 第一版可用简单加权，不引入额外模型。
+
+### 可选依赖
+
+```text
+pymilvus
+sentence-transformers 或 OpenAI-compatible embedding API
+rank-bm25
+```
+
+### 新增模块建议
+
+```text
+src/rag/bm25_retriever.py
+src/rag/embedding_client.py
+src/rag/milvus_store.py
+src/rag/hybrid_retriever.py
+tests/test_hybrid_rag.py
+```
+
+### Milvus 学习点
+
+- Collection 创建。
+- Field Schema。
+- 向量维度。
+- Index 类型。
+- Insert / Search / Delete。
+- 文档 ID 与向量 ID 的映射。
+
+### 评估要求
+
+准备一个小型评测集：
+
+```text
+question
+expected_source_title
+expected_keywords
+```
+
+验收至少包含：
+
+- top-3 是否召回正确来源。
+- answer 是否引用 sources。
+- 没有来源时是否拒绝编造。
+
+## Phase 11：LangChain / LangGraph 对照迁移
+
+### 前置条件
+
+- Phase 9 手写 Agent 已完成。
+- 已经能讲清楚手写 LLM Client、Prompt、Retriever、Tool Registry、Agent Loop。
+
+### 目标
+
+不是用 LangChain 重写整个项目，而是做一份对照实现，理解框架把哪些步骤封装掉了。
+
+### 学习映射
+
+| LangChain 组件 | 本项目已有对应 |
+| --- | --- |
+| LLMs / ChatModels | `src/ai/llm_client.py` |
+| PromptTemplate | `src/ai/prompts/*.txt` |
+| Chains | `job_matching_service`、`rag_service` |
+| Tools | `src/agent/tool_registry.py` |
+| Agent | `src/agent/react_loop.py` |
+| Memory | 可选：保存 Agent 会话摘要 |
+| Indexes / Retrievers | `keyword_retriever`、`hybrid_retriever` |
+
+### 交付物
+
+```text
+docs/langchain-migration-notes.md
+src/experimental/langchain_agent.py
+tests/test_langchain_agent_contract.py
+```
+
+要求：
+
+- 不替换主线代码。
+- 不改变已有 API。
+- 只做实验入口或文档对照。
+- 对比手写版和 LangChain 版的优缺点。
+
+## Phase 12：综合项目扩展 A：物流行业 RAG 系统
+
+### 目标
+
+复用当前 RAG 架构，做一个独立的领域 RAG 小项目，用来对应课程中的“物流行业 RAG 系统”。
+
+### 建议边界
+
+- 不塞进 Agentic Internship Coach 主项目。
+- 可以新建独立仓库或 `examples/logistics-rag/`。
+- 数据处理、文档切分、检索、回答、评估链路要完整。
+
+### 可展示能力
+
+- 领域文档清洗。
+- 文档切片策略。
+- BM25 / Milvus 检索对比。
+- RAG 评估表。
+- README 中展示一次完整问答。
+
+## Phase 13：综合项目扩展 B：评论分类与信息抽取
+
+### 目标
+
+把课程中的“评论智能分类与信息抽取系统”作为第二个独立作品集方向，不强行塞入求职 Agent。
+
+### 技术路线
+
+- 第一版：调用 LLM 做结构化抽取，Pydantic 校验输出。
+- 第二版：使用传统 BERT 分类或轻量微调。
+- 第三版：复习 ChatGLM-6B、LoRA、P-Tuning、梯度检查点等训练知识。
+
+### 与主项目关系
+
+主项目只吸收两个经验：
+
+- 结构化抽取结果必须校验。
+- 模型训练和在线后端服务要解耦。
+
+## Phase 14：DeepSeek 与大模型原理学习笔记
+
+### 目标
+
+将课程中的 DeepSeek V1/V2/Math/V3/R1、MLA、MoE、Flash Attention 等内容整理成面试可讲的学习笔记。
+
+### 建议文件
+
+```text
+00-学习路线/DeepSeek-模型原理与工程应用.md
+00-学习路线/RAG-BM25-Milvus-学习笔记.md
+00-学习路线/LangChain-基础到项目迁移.md
+```
+
+### 注意
+
+- 这些是原理学习笔记，不要求在 FastAPI 项目里实现 Flash Attention、MLA 或 MoE。
+- 面试表达重点放在“我知道模型底层优化是什么，但我的项目重点是应用层工程落地”。
 
 ---
 
@@ -1021,6 +1267,14 @@ hiredis
 
 # RAG
 jieba
+
+# RAG 进阶，可选
+rank-bm25
+pymilvus
+
+# LangChain 进阶，可选
+langchain
+langgraph
 ```
 
 `docker` 不是 Python 依赖，不写入 `requirements.txt`。
@@ -1037,6 +1291,11 @@ jieba
 7. Phase 7：关键词 RAG
 8. Phase 8：StudyTask
 9. Phase 9：受控 Agent
+10. Phase 10：BM25 + Milvus 向量 RAG，可选
+11. Phase 11：LangChain / LangGraph 对照迁移，可选
+12. Phase 12：物流行业 RAG 系统，独立扩展
+13. Phase 13：评论分类与信息抽取系统，独立扩展
+14. Phase 14：DeepSeek 与大模型原理学习笔记
 ```
 
-这个顺序保证：即使后面的 RAG 或 Agent 暂时没做完，前四个 Phase 也已经能形成一个完整、可展示、可测试的 FastAPI 作品集。
+这个顺序保证：即使后面的 RAG、Agent、LangChain、Milvus 或微调项目暂时没做完，前四个 Phase 也已经能形成一个完整、可展示、可测试的 FastAPI 作品集。

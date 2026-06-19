@@ -6,7 +6,7 @@ aliases:
 
 读完约 8 分钟。
 
-> 相关笔记：[os 模块/深浅拷贝](../22-copy-os/theory_22_copy_os.md) · [模块与类型提示](../05-module-types/theory_05_module_types.md)
+> 相关笔记：[os 模块/深浅拷贝](../22-copy-os/theory_22_copy_os.md) · [模块与类型提示](../05-module-types/theory_05_module_types.md) · [[00-学习路线/课堂程序4-异常专题对照|课堂程序4：异常专题对照]]
 
 ---
 

@@ -1,114 +1,155 @@
 """
-08 — 类型提示进阶 + 依赖注入练习
-先快速回顾类型提示，再进入 DI。
+08 - 类型提示进阶 + 依赖注入练习
+
+核心目标：
+1. 用类型提示让函数签名更清楚
+2. 用 Callable 表达“函数作为参数”
+3. 用 Protocol 表达“只关心行为，不关心具体类”
+4. 用依赖注入把业务类和具体实现解耦
 """
-import sys, io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-from typing import Callable, Protocol, Optional
+
+from pathlib import Path
+from typing import Callable, Protocol, runtime_checkable
+
 
 # ============================================================
-# 练习0：类型提示快速热身（来自 05-module-types）
+# 练习0：类型提示快速热身
 # ============================================================
-# 给下面的函数加上类型提示，不用写逻辑
 
-def add(a, b):     # TODO: 加类型提示，int → int
+
+def add(a: int, b: int) -> int:
     return a + b
 
-def greet(name):   # TODO: str → str
+
+def greet(name: str) -> str:
     return f"Hello, {name}!"
 
-def first(items):  # TODO: list[int] → Optional[int]
-    return items[0] if items else None
 
-# 验证
-# print(add(3, 5))
-# print(greet("Python"))
-# print(first([1, 2, 3]))
-# print(first([]))
+def first(items: list[int]) -> int | None:
+    return items[0] if items else None
 
 
 # ============================================================
 # 练习1：Callable
 # ============================================================
-# TODO: 补全类型提示，processor 是一个函数，接收 str 返回 str
 
-def process_names(names: list[str], transformer: Callable[[str], str]) -> list[str]:
-    # 你的代码... 列表推导式
-    pass
 
-# 验证
-# shout = lambda s: s.upper() + "!"
-# print(process_names(["hello", "world"], shout))   # ['HELLO!', 'WORLD!']
+def process_names(
+    names: list[str],
+    transformer: Callable[[str], str],
+) -> list[str]:
+    return [transformer(name) for name in names]
 
 
 # ============================================================
 # 练习2：Protocol（鸭子类型）
 # ============================================================
-# TODO: 定义一个 Printer Protocol
-# 要求有 print_doc(self, content: str) -> None 方法
-# 然后实现两个类：ConsolePrinter 和 FilePrinter
 
+
+@runtime_checkable
 class Printer(Protocol):
-    # 你的代码...
-    pass
+    def print_doc(self, content: str) -> None:
+        ...
+
 
 class ConsolePrinter:
-    # 打印到控制台
-    pass
+    def print_doc(self, content: str) -> None:
+        print(f"[Console] {content}")
+
 
 class FilePrinter:
-    # 打印到文件（用 with open）
-    pass
+    def __init__(self, filename: str | Path | None = None) -> None:
+        self.filename = Path(filename) if filename else Path(__file__).with_name("report.txt")
 
-# 验证
-# cp = ConsolePrinter()
-# cp.print_doc("Hello Console")     # 期望: [Console] Hello Console
-# fp = FilePrinter()
-# fp.print_doc("Hello File")        # 期望: [File] Hello File（且保存到文件）
+    def print_doc(self, content: str) -> None:
+        with self.filename.open("a", encoding="utf-8") as file:
+            file.write(f"[File] {content}\n")
+        print(f"[File] {content}")
 
 
 # ============================================================
 # 练习3：依赖注入
 # ============================================================
-# TODO: 实现 ReportService
-# 它接收一个 Printer，调用 printer 来输出报告
-# report() 方法接收 title 和 content，输出格式化的报告
+
 
 class ReportService:
-    # 你的代码...
-    pass
+    def __init__(self, printer: Printer) -> None:
+        if not isinstance(printer, Printer):
+            raise TypeError("printer 必须实现 print_doc(content: str) -> None")
+        self.printer = printer
 
-# 验证
-# service = ReportService(ConsolePrinter())
-# service.report("日报", "今天学习了 Pydantic 和 DI")
+    def report(self, title: str, content: str) -> None:
+        formatted = f"=== {title} ===\n{content}"
+        self.printer.print_doc(formatted)
 
 
 # ============================================================
-# 练习4：替换实现（破坏实验 + 理解 DI 好处）
+# 练习4：替换实现（理解 DI 好处）
 # ============================================================
-# 不用改 ReportService 的代码，替换 Printer 实现
-# 下面这个 UpperCasePrinter 把所有内容转大写
+
 
 class UpperCasePrinter:
-    # 你的代码...
-    pass
-
-# 验证
-# service2 = ReportService(UpperCasePrinter())
-# service2.report("通知", "hello world")     # 应该输出大写
+    def print_doc(self, content: str) -> None:
+        print(content.upper())
 
 
 # ============================================================
-# 练习5（破坏实验）
+# 练习5：用数据库例子理解 DI
 # ============================================================
-# 如果传入的对象没有实现 print_doc 方法，会怎样？
-# TODO: 取消注释，看报错
-
-# service3 = ReportService("not_a_printer")
-# service3.report("测试", "会不会报错？")
 
 
-# ============================================================
-# ✅ 完成标记
-# ============================================================
-print("\n✅ 08-类型提示+DI 练习完成！")
+class UserDatabase(Protocol):
+    def query_all(self) -> list[str]:
+        ...
+
+
+class MySQLUserDatabase:
+    def query_all(self) -> list[str]:
+        return ["张三", "李四"]
+
+
+class FakeUserDatabase:
+    def query_all(self) -> list[str]:
+        return ["测试用户"]
+
+
+class UserService:
+    def __init__(self, db: UserDatabase) -> None:
+        self.db = db
+
+    def get_users(self) -> list[str]:
+        return self.db.query_all()
+
+
+def demo() -> None:
+    print(add(3, 5))
+    print(greet("Python"))
+    print(first([1, 2, 3]))
+    print(first([]))
+
+    shout = lambda text: text.upper() + "!"
+    print(process_names(["hello", "world"], shout))
+
+    ConsolePrinter().print_doc("Hello Console")
+    FilePrinter().print_doc("Hello File")
+
+    service = ReportService(ConsolePrinter())
+    service.report("日报", "今天学习了 Pydantic 和 DI")
+
+    service2 = ReportService(UpperCasePrinter())
+    service2.report("通知", "hello world")
+
+    try:
+        ReportService("not_a_printer")
+    except TypeError as exc:
+        print(f"错误示例: {exc}")
+
+    mysql_user_service = UserService(MySQLUserDatabase())
+    fake_user_service = UserService(FakeUserDatabase())
+    print("真实数据库:", mysql_user_service.get_users())
+    print("测试数据库:", fake_user_service.get_users())
+
+
+if __name__ == "__main__":
+    demo()
+    print("\n08-类型提示+DI 练习完成！")

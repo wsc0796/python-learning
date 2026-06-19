@@ -7,7 +7,7 @@ aliases:
 > 都是"天天用但没人专门教"的东西
 > 读完约 15 分钟，分 4 组
 >
-> 相关笔记：[函数基础](../25-function-basics/theory_25_function_basics.md) · [列表深入操作](../21-list-deep/theory_21_list_deep.md)
+> 相关笔记：[函数基础](../25-function-basics/theory_25_function_basics.md) · [列表深入操作](../21-list-deep/theory_21_list_deep.md) · [课堂老师函数程序对照](../00-学习路线/课堂老师程序-函数专题对照.md)
 
 ---
 

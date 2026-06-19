@@ -8,7 +8,7 @@ aliases:
 > 目标：理解装饰器原理，看懂 FastAPI 的 `@app.get("/path")`
 > 用时：约 15 分钟
 
-相关笔记：[函数基础](../25-function-basics/theory_25_function_basics.md) · [Python 基础补漏（作用域/*args）](../16-python-gaps/theory_16_python_gaps.md)
+相关笔记：[函数基础](../25-function-basics/theory_25_function_basics.md) · [Python 基础补漏（作用域/*args）](../16-python-gaps/theory_16_python_gaps.md) · [课堂老师函数程序对照](../00-学习路线/课堂老师程序-函数专题对照.md)
 
 ---
 

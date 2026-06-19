@@ -1,115 +1,116 @@
 """
-07 — Pydantic 练习
-做完再去动 Day 5 的 CRUD。
+07 - Pydantic 练习
+
+核心目标：
+1. 用 BaseModel 描述数据结构
+2. 用 Field 添加校验约束
+3. 用 model_dump()/model_dump_json() 做序列化
+4. 理解嵌套模型和模型方法
 """
-import sys, io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-from pydantic import BaseModel, Field
+
+from typing import Literal
+
+from pydantic import BaseModel, Field, ValidationError
+
 
 # ============================================================
 # 练习1：你的第一个 Pydantic 模型
 # ============================================================
-# TODO: 定义一个 Student 模型
-# 字段：id (int), name (str), score (float)
+
 
 class Student(BaseModel):
-    # 你的代码...
-    pass
-
-# 验证 - 取消注释跑通
-# s = Student(id=1, name="张三", score=92.5)
-# print(s)
-# print(f"name={s.name}, score={s.score}")
+    id: int
+    name: str
+    score: float
 
 
 # ============================================================
 # 练习2：加约束
 # ============================================================
-# TODO: 定义一个 Employee 模型
-# name: 至少1字符
-# age: 18-65
-# salary: 大于0
-# department: 可选，默认"技术部"
+
 
 class Employee(BaseModel):
-    # 你的代码...
-    pass
-
-# 验证 - 取消注释跑通
-# e = Employee(name="张三", age=25, salary=15000.0)
-# print(e.model_dump())
-
-# 下面的应该报错，取消注释看报错
-# e2 = Employee(name="", age=15, salary=-100)   # 三个都违反约束
+    name: str = Field(min_length=1)
+    age: int = Field(ge=18, le=65)
+    salary: float = Field(gt=0)
+    department: str = "技术部"
 
 
 # ============================================================
 # 练习3：序列化
 # ============================================================
-# TODO: 创建一个 Product 模型
-# 字段：id, name, price, stock（默认0）
-# 然后：创建实例 → model_dump() → model_dump_json()
+
 
 class Product(BaseModel):
-    # 你的代码...
-    pass
-
-# 验证 - 取消注释跑通
-# p = Product(id=1, name="笔记本电脑", price=5999.0, stock=10)
-# print("字典:", p.model_dump())
-# print("JSON:", p.model_dump_json())
+    id: int
+    name: str = Field(min_length=1)
+    price: float = Field(gt=0)
+    stock: int = Field(default=0, ge=0)
 
 
 # ============================================================
-# 练习4：嵌套模型（破坏实验）
+# 练习4：嵌套模型
 # ============================================================
+
 
 class Address(BaseModel):
-    city: str
-    street: str
+    city: str = Field(min_length=1)
+    street: str = Field(min_length=1)
+
 
 class User(BaseModel):
-    name: str
+    name: str = Field(min_length=1)
     address: Address
-
-# TODO: 取消注释，观察输出
-# u = User(name="张三", address={"city": "南昌", "street": "经开区"})
-# print(u)
-# print(u.address.city)   # 访问嵌套字段
-
-# TODO: 故意传错 → u2 = User(name="张三", address="not_a_dict")
-# 取消注释看报错
 
 
 # ============================================================
 # 练习5：模型方法
 # ============================================================
-# TODO: 在模型上加一个自定义方法
-# 模型：Order，字段 id, total (float), status (str)
-# 方法：is_paid() → bool (status == "paid")
-# 方法：apply_discount(rate: float) → 修改 total
+
 
 class Order(BaseModel):
     id: int
-    total: float
-    status: str = "pending"
+    total: float = Field(ge=0)
+    status: Literal["pending", "paid", "cancelled"] = "pending"
 
     def is_paid(self) -> bool:
-        # 你的代码...
-        pass
+        return self.status == "paid"
 
-    def apply_discount(self, rate: float):
-        # 你的代码... total *= (1 - rate)
-        pass
-
-# 验证
-# o = Order(id=1, total=100.0, status="paid")
-# print(f"已支付: {o.is_paid()}")
-# o.apply_discount(0.1)
-# print(f"打折后: {o.total}")    # 90.0
+    def apply_discount(self, rate: float) -> None:
+        if not 0 <= rate <= 1:
+            raise ValueError("折扣 rate 必须在 0 到 1 之间")
+        self.total *= 1 - rate
 
 
-# ============================================================
-# ✅ 完成标记
-# ============================================================
-print("\n✅ 07-Pydantic 练习完成！")
+def demo() -> None:
+    """运行本文件时展示每个模型的基本用法。"""
+    student = Student(id=1, name="张三", score=92.5)
+    print(student)
+    print(f"name={student.name}, score={student.score}")
+
+    employee = Employee(name="李四", age=25, salary=15000.0)
+    print(employee.model_dump())
+
+    product = Product(id=1, name="笔记本电脑", price=5999.0, stock=10)
+    print("字典:", product.model_dump())
+    print("JSON:", product.model_dump_json())
+
+    user = User(name="王五", address={"city": "南昌", "street": "经开区"})
+    print(user)
+    print(user.address.city)
+
+    order = Order(id=1, total=100.0, status="paid")
+    print(f"已支付: {order.is_paid()}")
+    order.apply_discount(0.1)
+    print(f"打折后: {order.total}")
+
+    try:
+        Employee(name="", age=15, salary=-100)
+    except ValidationError as exc:
+        print("\n校验失败示例:")
+        print(exc)
+
+
+if __name__ == "__main__":
+    demo()
+    print("\n07-Pydantic 练习完成！")

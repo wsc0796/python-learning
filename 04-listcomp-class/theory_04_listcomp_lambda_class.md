@@ -223,3 +223,66 @@ print(c.speak())   # 咪咪 喵喵
 | 继承 | ✅ 今天可以学 |
 
 相关笔记：[列表深入操作](../21-list-deep/theory_21_list_deep.md) · [推导式进阶 · any/all/sorted](../16-python-gaps/theory_16_python_gaps.md)
+
+---
+
+## 桥接：把这个 Dog 换成你的 notes-api
+
+你笔记里的 Dog 和你的 JsonNoteRepository，是**同一个模式**：
+
+```python
+# ── 笔记里的例子 ──               # ── 你项目里的代码 ──
+class Dog:                         class JsonNoteRepository:
+    def __init__(self, name):          def __init__(self, filename):
+        self.name = name                   self.filename = filename
+
+    def bark(self):                      def list_notes(self):
+        print(f"{self.name} 汪汪")           # 读文件，返回笔记列表
+
+# 创建对象                           # 创建对象
+d = Dog("旺财")                      repo = JsonNoteRepository("notes.json")
+#     ^ 传字符串"旺财"给 __init__     #              ^ 传字符串路径给 __init__
+
+# 使用方法                           # 使用方法
+d.bark()                             notes = repo.list_notes()
+```
+
+**完全一致的结构：**
+
+```
+Dog("旺财")                      → 类名(参数) = 造对象，参数传给 __init__
+  → __init__(self, "旺财")       → self.name = "旺财"
+
+JsonNoteRepository("notes.json") → 类名(参数) = 造对象，参数传给 __init__
+  → __init__(self, "notes.json") → self.filename = "notes.json"
+```
+
+所以当你看到：
+
+```python
+repo = JsonNoteRepository("notes.json")
+service = NoteService(repo)
+```
+
+读作：
+
+```python
+# 第1行：造一个"JSON仓库"对象，告诉它"你的文件是 notes.json"
+repo = JsonNoteRepository("notes.json")
+
+# 第2行：造一个"笔记服务"对象，把仓库塞给它
+# NoteService 需要仓库才能干活——它不自己造仓库，而是外面传进来
+service = NoteService(repo)
+```
+
+> **关键认知：`类名(参数)` = 造一个对象，参数传给 `__init__`。不需要 `new` 关键字。**
+
+### 一句话串起来
+
+```
+模具（类）        = 配方（告诉你怎么造）
+产品（对象）      = 实际造出来的东西
+__init__         = "造的时候要准备什么"
+self             = "这个产品自己"
+对象.方法()       = "让这个产品做一件事"
+```
