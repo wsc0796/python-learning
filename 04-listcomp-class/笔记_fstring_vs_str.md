@@ -111,3 +111,7 @@ repr(p)        # Person('张三')   ← __repr__
 ```
 
 **`@dataclass` 自动生成 `__str__` 和 `__repr__`**，这也是为什么推荐用 `@dataclass` 而不是手写类。
+
+## 备考相关
+
+- [[EXAM_PREP/day04/00_今日任务]] — Day 4 面向对象（`__str__` / `__repr__`）

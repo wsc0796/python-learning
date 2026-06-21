@@ -70,3 +70,7 @@ print("world")           # helloworld
 print(1, 2, 3)           # 1 2 3
 print(1, 2, 3, sep="-")  # 1-2-3
 ```
+
+## 备考相关
+
+- [[EXAM_PREP/day01/00_今日任务]] — Day 1 基础语法与流程控制

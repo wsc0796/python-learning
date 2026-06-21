@@ -299,3 +299,10 @@ print(result)       # 16
 | 无返回值 | 不写 return | 返回 None |
 | 文档 | `"""说明"""` | 函数体第一行 |
 | 类型提示 | `def f(x: int) -> str:` | 代码更清晰 |
+
+## 备考相关
+
+- [[EXAM_PREP/day01/00_今日任务]] — Day 1 基础语法（预热）
+- [[EXAM_PREP/day03/00_今日任务]] — Day 3 函数专项
+- [[EXAM_PREP/day06/00_今日任务]] — Day 6 老师课堂代码重放
+- [[EXAM_PREP/day07/00_今日任务]] — Day 7 学生管理系统综合题

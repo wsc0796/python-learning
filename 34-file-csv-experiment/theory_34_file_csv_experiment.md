@@ -493,3 +493,9 @@ OK: txt 拷贝 -> source_copy.txt
 
 就算今天成功。
 
+## 备考相关
+
+- [[EXAM_PREP/day05/00_今日任务]] — Day 5 文件与异常
+- [[EXAM_PREP/day06/00_今日任务]] — Day 6 老师课堂代码重放（CSV 读写）
+- [[EXAM_PREP/day07/00_今日任务]] — Day 7 学生管理系统综合题
+

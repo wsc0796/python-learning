@@ -12,7 +12,7 @@ aliases:
 
 ---
 
-## 概览：最常用的 12 个方法
+## 概览：字符串方法分类速查
 
 | 类别       | 方法                                      | 作用             |
 | -------- | --------------------------------------- | -------------- |
@@ -20,7 +20,9 @@ aliases:
 | **判断**   | `startswith()` / `endswith()`           | 判断开头/结尾        |
 | **判断**   | `isalpha()` / `isdigit()` / `isalnum()` | 判断字符类型         |
 | **修改**   | `replace()`                             | 替换             |
-| **修改**   | `upper()` / `lower()` / `strip()`       | 大小写/去空格        |
+| **修改**   | `upper()` / `lower()` / `title()` / `capitalize()` / `swapcase()` | 大小写转换          |
+| **修改**   | `strip()` / `lstrip()` / `rstrip()`     | 去除两端 / 左端 / 右端空白 |
+| **修改**   | `center()` / `ljust()` / `rjust()`      | 对齐与填充          |
 | **拆分合并** | `split()` / `join()`                    | 拆分成列表 / 合并成字符串 |
 
 ---
@@ -120,13 +122,35 @@ text = "Hello World"
 
 print(text.upper())   # "HELLO WORLD"
 print(text.lower())   # "hello world"
-print(text.title())   # "Hello World"（每个单词首字母大写）
 
 # 实用：不区分大小写的比较
 input_color = "Red"
 if input_color.lower() == "red":
     print("匹配")
 ```
+
+### capitalize() / swapcase() / title() — 其他大小写方法
+
+```python
+text = "hello WORLD"
+
+# capitalize：句首大写，其余全小写
+print(text.capitalize())  # "Hello world"
+
+# title：每个单词首字母大写
+print(text.title())       # "Hello World"
+
+# swapcase：大写↔小写互换（你文件实验里用过的）
+print(text.swapcase())    # "HELLO world"
+```
+
+| 方法 | `"hello WORLD"` 的结果 | 规则 |
+|------|------------------------|------|
+| `upper()` | `"HELLO WORLD"` | 全大写 |
+| `lower()` | `"hello world"` | 全小写 |
+| `capitalize()` | `"Hello world"` | 首字母大写，其余全小写 |
+| `title()` | `"Hello World"` | 每个单词首字母大写 |
+| `swapcase()` | `"HELLO world"` | 大小写翻转 |
 
 ### strip() — 去除两端空白
 
@@ -322,3 +346,7 @@ print(f"rstrip:{old.rstrip()}显示")  # 去右端空格
   对齐        → center() / ljust() / rjust()
   去空格      → strip() / lstrip() / rstrip()
 ```
+
+## 备考相关
+
+- [[EXAM_PREP/day02/00_今日任务]] — Day 2 字符串与组合数据类型

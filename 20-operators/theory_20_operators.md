@@ -131,3 +131,7 @@ if a + b > c and d == e:
 # 清晰
 if (a + b) > c and (d == e):
 ```
+
+## 备考相关
+
+- [[EXAM_PREP/day01/00_今日任务]] — Day 1 基础语法与流程控制

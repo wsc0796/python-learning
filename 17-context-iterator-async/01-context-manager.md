@@ -298,3 +298,7 @@ demo = contextmanager(demo)
 | `__exit__` 随便返回 `True` | 异常被静默吞掉 | 默认返回 `None`（不吞异常） |
 | `@contextmanager` 中 `yield` 不在 `try` 里 | 异常时清理代码不执行 | 养成 `try: yield` + `finally: cleanup` 的习惯 |
 | 在 `__exit__` 中再次抛异常 | 覆盖原始异常，调试困难 | `__exit__` 只做清理，不抛异常 |
+
+## 备考相关
+
+- [[EXAM_PREP/day05/00_今日任务]] — Day 5 文件与异常（`with` 底层原理）

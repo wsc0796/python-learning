@@ -158,3 +158,8 @@ else if age < 18:   # ← SyntaxError，Python 里是 elif
 | 多分支 | `if ... elif ... else ...` | 多选一 |
 | 嵌套 | `if 里套 if` | 需要先判断大前提 |
 | 三元 | `x if 条件 else y` | 简单的二选一赋值 |
+
+## 备考相关
+
+- [[EXAM_PREP/day01/00_今日任务]] — Day 1 基础语法与流程控制
+- [[EXAM_PREP/day07/00_今日任务]] — Day 7 学生管理系统综合题

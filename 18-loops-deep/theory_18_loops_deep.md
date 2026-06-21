@@ -119,3 +119,10 @@ for i in range(1, 10):
 ## 一句话记
 
 > `break` 跳出整个循环，`continue` 跳过当前次。`else` 在循环没被 `break` 时才执行。
+
+---
+
+## 备考相关
+
+- [[EXAM_PREP/day01/00_今日任务]] — Day 1 基础语法与流程控制
+- [[EXAM_PREP/day07/00_今日任务]] — Day 7 学生管理系统综合题

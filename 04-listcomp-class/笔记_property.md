@@ -198,3 +198,7 @@ def celsius(self, value):
 - 写 `self._celsius = value` → **绕过 setter**（直接存）
 
 一般而言 `__init__` 里直接操作 `_celsius` 避开设定的校验逻辑，setter 留给后续修改时校验。
+
+## 备考相关
+
+- [[EXAM_PREP/day04/00_今日任务]] — Day 4 面向对象（@property）

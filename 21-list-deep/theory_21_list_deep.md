@@ -116,3 +116,8 @@ print(sum(nums))       # 14
 print(any(x > 4 for x in nums))   # True
 print(all(x > 0 for x in nums))   # True
 ```
+
+## 备考相关
+
+- [[EXAM_PREP/day02/00_今日任务]] — Day 2 字符串与组合数据类型
+- [[EXAM_PREP/day07/00_今日任务]] — Day 7 学生管理系统综合题

@@ -243,3 +243,9 @@ print(divide(10, 0))  # 不能除零 → finally → None
 | 生成器 yield | ❌ 推迟到 Day5 之后 |
 
 装饰器和生成器是 Python 进阶内容，在你站稳第3层（能讲清楚流程）之前不碰。
+
+## 备考相关
+
+- [[EXAM_PREP/day05/00_今日任务]] — Day 5 文件与异常
+- [[EXAM_PREP/day06/00_今日任务]] — Day 6 老师课堂代码重放
+- [[EXAM_PREP/day07/00_今日任务]] — Day 7 学生管理系统综合题
