@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>theory_21_list_deep.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><hr />
+<p>aliases:
+  - 21-list-deep</p>
+<hr />
+<h1>列表深入操作</h1>
+<blockquote>
+<p>前置：已掌握列表基本用法
+目标：覆盖列表所有常用操作
+用时：约 8 分钟</p>
+<p>相关笔记：<a href="../02-slice/theory_02_slice.md">切片操作</a> · <a href="../17-tuple-set/theory_17_tuple_set.md">元组与集合</a> · <a href="../06-dict/theory_06_dict.md">字典 dict</a></p>
+</blockquote>
+<hr />
+<h2>一、增删改查</h2>
+<pre><code class="language-python">lst = [1, 2, 3]
+
+# 增
+lst.append(4)         # [1, 2, 3, 4]      末尾添加
+lst.insert(1, 99)     # [1, 99, 2, 3, 4]  指定位置插入
+lst.extend([5, 6])    # [1, 99, 2, 3, 4, 5, 6]  合并另一个列表
+
+# 删
+lst.pop()             # 返回 6，lst = [1, 99, 2, 3, 4, 5]  删末尾
+lst.pop(1)            # 返回 99，lst = [1, 2, 3, 4, 5]     删指定索引
+lst.remove(3)         # lst = [1, 2, 4, 5]                 删第一个匹配的值
+# lst.remove(999)     # ❌ ValueError — 不存在会报错
+lst.clear()           # lst = []                            清空
+
+# 改
+lst = [1, 2, 3]
+lst[1] = 99           # [1, 99, 3]
+
+# 查
+lst = [10, 20, 30, 20, 40]
+print(lst.index(20))    # 1  第一次出现的位置
+print(lst.index(20, 2)) # 3  从索引2开始找20
+print(lst.count(20))    # 2  出现次数
+print(30 in lst)        # True
+</code></pre>
+<h2>二、排序和反转</h2>
+<pre><code class="language-python"># sort() 原地排序
+nums = [3, 1, 4, 1, 5]
+nums.sort()
+print(nums)          # [1, 1, 3, 4, 5]
+
+nums.sort(reverse=True)
+print(nums)          # [5, 4, 3, 1, 1]
+
+# sorted() 返回新列表
+nums = [3, 1, 4]
+sorted_nums = sorted(nums)
+print(sorted_nums)   # [1, 3, 4]
+print(nums)          # [3, 1, 4] — 原列表不变
+
+# reverse() 反转
+nums.reverse()
+print(nums)          # [4, 1, 3]
+
+# 用 key 排序（已讲，复习一下）
+students = [(&quot;张三&quot;, 92), (&quot;李四&quot;, 88), (&quot;王五&quot;, 95)]
+students.sort(key=lambda s: s[1], reverse=True)
+print(students)  # [('王五', 95), ('张三', 92), ('李四', 88)]
+</code></pre>
+<h2>三、列表复制</h2>
+<pre><code class="language-python"># 浅复制
+a = [1, 2, 3]
+b = a.copy()        # ✅
+c = a[:]            # ✅ 等价
+d = list(a)         # ✅ 等价
+
+a[0] = 99
+print(b[0])         # 1 — 不受影响
+
+# 但浅复制对于嵌套列表有问题
+a = [[1, 2], [3, 4]]
+b = a.copy()
+a[0][0] = 99
+print(b[0][0])      # 99 — 内层列表还是共享的！
+</code></pre>
+<h2>四、列表嵌套</h2>
+<pre><code class="language-python"># 二维列表（矩阵）
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+]
+print(matrix[1][2])   # 6 — 第2行第3列
+
+# 遍历
+for row in matrix:
+    for val in row:
+        print(val, end=&quot; &quot;)
+    print()
+</code></pre>
+<h2>五、列表常用函数</h2>
+<pre><code class="language-python">nums = [3, 1, 4, 1, 5]
+print(len(nums))       # 5
+print(max(nums))       # 5
+print(min(nums))       # 1
+print(sum(nums))       # 14
+print(any(x &gt; 4 for x in nums))   # True
+print(all(x &gt; 0 for x in nums))   # True
+</code></pre>
+<h2>备考相关</h2>
+<ul>
+<li>[[EXAM_PREP/day02/00_今日任务]] — Day 2 字符串与组合数据类型</li>
+<li>[[EXAM_PREP/day07/00_今日任务]] — Day 7 学生管理系统综合题</li>
+</ul></body>
+</html>

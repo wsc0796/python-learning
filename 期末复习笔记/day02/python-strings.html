@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>python-strings.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><h1>Python 字符串 — Java 对照速查（完整版）</h1>
+<blockquote>
+<p>来源：Day 1 学习记录 + WeChat 9个字符串文件 + 学校实验报告</p>
+</blockquote>
+<hr />
+<h2>总览：Python 字符串操作 7 大模块</h2>
+<pre><code>字符串
+├── 1. 定义与转义     '...' / &quot;...&quot; / &quot;&quot;&quot;...&quot;&quot;&quot;   +   \'  \&quot;  \\
+├── 2. 格式化输出     %  →  .format()  →  f-string（三代演进）
+├── 3. 查找与替换     find() / index() / in / replace()
+├── 4. 分割与拼接     split() / join() / +
+├── 5. 大小写转换     upper() / lower() / capitalize() / title()
+├── 6. 空白处理       strip() / lstrip() / rstrip()
+└── 7. 对齐与填充     center() / ljust() / rjust()
+</code></pre>
+<hr />
+<h2>Java ↔ Python 速查表</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Java</th>
+<th>Python</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>类型声明</td>
+<td><code>String s = "hi";</code></td>
+<td><code>s = "hi"</code></td>
+<td>动态类型</td>
+</tr>
+<tr>
+<td>不可变性</td>
+<td>✅</td>
+<td>✅</td>
+<td>完全一致</td>
+</tr>
+<tr>
+<td>定义方式</td>
+<td>仅双引号</td>
+<td>单/双/三引号</td>
+<td>Python 更多选择</td>
+</tr>
+<tr>
+<td>转义字符</td>
+<td><code>\"</code> <code>\'</code> <code>\\</code></td>
+<td>完全一致</td>
+<td></td>
+</tr>
+<tr>
+<td>格式化</td>
+<td><code>String.format()</code></td>
+<td><code>f-string</code>（首选）/ <code>.format()</code> / <code>%</code></td>
+<td>Python 有三代方案</td>
+</tr>
+<tr>
+<td>长度</td>
+<td><code>s.length()</code></td>
+<td><code>len(s)</code></td>
+<td>⚠️ len 是函数不是方法</td>
+</tr>
+<tr>
+<td>重复 N 次</td>
+<td>需循环</td>
+<td><code>"=" * 40</code></td>
+<td>Python 独有</td>
+</tr>
+<tr>
+<td>子串判断</td>
+<td><code>s.contains("a")</code></td>
+<td><code>"a" in s</code></td>
+<td>和 list 统一用 <code>in</code></td>
+</tr>
+<tr>
+<td>查找位置</td>
+<td><code>s.indexOf("t")</code></td>
+<td><code>s.find("t")</code></td>
+<td>找不到都返回 -1</td>
+</tr>
+<tr>
+<td>查找（指定起点）</td>
+<td><code>s.indexOf("t", 5)</code></td>
+<td><code>s.find("t", 5)</code></td>
+<td>一致</td>
+</tr>
+<tr>
+<td>全部替换</td>
+<td><code>s.replaceAll("a","b")</code></td>
+<td><code>s.replace("a","b")</code></td>
+<td></td>
+</tr>
+<tr>
+<td>限制次数替换</td>
+<td>需手写循环</td>
+<td><code>s.replace("a","b", 2)</code></td>
+<td>Python 更方便</td>
+</tr>
+<tr>
+<td>分割</td>
+<td><code>s.split(",")</code></td>
+<td><code>s.split(",")</code></td>
+<td>完全一致</td>
+</tr>
+<tr>
+<td>限制次数分割</td>
+<td><code>s.split(",", 2)</code></td>
+<td><code>s.split(",", 2)</code></td>
+<td>一致</td>
+</tr>
+<tr>
+<td>拼接</td>
+<td><code>String.join("-", list)</code></td>
+<td><code>"-".join(list)</code></td>
+<td>⚠️ 方向相反！</td>
+</tr>
+<tr>
+<td>直接拼接</td>
+<td><code>"a" + "b"</code></td>
+<td><code>"a" + "b"</code></td>
+<td>完全一致</td>
+</tr>
+<tr>
+<td>全大写</td>
+<td><code>s.toUpperCase()</code></td>
+<td><code>s.upper()</code></td>
+<td></td>
+</tr>
+<tr>
+<td>全小写</td>
+<td><code>s.toLowerCase()</code></td>
+<td><code>s.lower()</code></td>
+<td></td>
+</tr>
+<tr>
+<td>首字母大写</td>
+<td>需手写</td>
+<td><code>s.capitalize()</code></td>
+<td></td>
+</tr>
+<tr>
+<td>每词首字母大写</td>
+<td>需手写</td>
+<td><code>s.title()</code></td>
+<td>Python 独有</td>
+</tr>
+<tr>
+<td>去两端空白</td>
+<td><code>s.trim()</code></td>
+<td><code>s.strip()</code></td>
+<td></td>
+</tr>
+<tr>
+<td>去左空白</td>
+<td>无直接等价</td>
+<td><code>s.lstrip()</code></td>
+<td></td>
+</tr>
+<tr>
+<td>去右空白</td>
+<td>无直接等价</td>
+<td><code>s.rstrip()</code></td>
+<td></td>
+</tr>
+<tr>
+<td>居中对齐</td>
+<td>需手写</td>
+<td><code>s.center(13, "-")</code></td>
+<td>Python 内置</td>
+</tr>
+<tr>
+<td>左对齐填充</td>
+<td>需手写</td>
+<td><code>s.ljust(13, "*")</code></td>
+<td>Python 内置</td>
+</tr>
+<tr>
+<td>右对齐填充</td>
+<td>需手写</td>
+<td><code>s.rjust(13, "%")</code></td>
+<td>Python 内置</td>
+</tr>
+<tr>
+<td>删除指定字符</td>
+<td>需正则</td>
+<td><code>s.strip("指定字符")</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>一、字符串定义：三种引号</h2>
+<pre><code class="language-python">'单引号'              # Python 惯例首选
+&quot;双引号&quot;              # 和单引号等价，含单引号时用：&quot;let's&quot;
+&quot;&quot;&quot;三引号
+可跨多行&quot;&quot;&quot;           # 多行文本（Java 15+ 才有文本块）
+</code></pre>
+<p><strong>转义字符</strong>（和 Java 完全一样）：</p>
+<pre><code class="language-python">print(&quot;let's learn Python&quot;)             # 双引号包裹 → 无需转义
+print('let\'s learn Python')            # 单引号包裹 → 需要 \'
+print('How do you spell &quot;Python&quot;?')     # 单引号包裹 → 双引号无需转义
+</code></pre>
+<blockquote>
+<p>核心原则：<strong>选一种引号做主引号，字符串里出现这种引号时才换另一种或转义。</strong></p>
+</blockquote>
+<hr />
+<h2>二、格式化输出：三代演进</h2>
+<h3>第一代：<code>%</code> 格式化（类似 C 语言 printf，不推荐新代码使用）</h3>
+<pre><code class="language-python">name = '张三'
+age = 27
+ave = 88.856
+
+print(&quot;姓名：%s&quot; % name)                           # %s = 字符串
+print(&quot;年龄：%6d岁\n平均成绩%.2f&quot; % (age, ave))     # %d = 整数, %.2f = 浮点2位
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>格式符</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>%s</code></td>
+<td>字符串</td>
+</tr>
+<tr>
+<td><code>%d</code></td>
+<td>整数</td>
+</tr>
+<tr>
+<td><code>%f</code></td>
+<td>浮点数</td>
+</tr>
+<tr>
+<td><code>%.2f</code></td>
+<td>浮点数保留2位小数</td>
+</tr>
+</tbody>
+</table>
+<h3>第二代：<code>.format()</code> 方法（三种占位方式）</h3>
+<pre><code class="language-python">name = '张三'
+age = 27
+
+# 方式1：顺序占位（按 {} 出现顺序）
+print(&quot;姓名：{}\n年龄：{}&quot;.format(name, age))
+
+# 方式2：编号占位（{0} 是第一个参数，{1} 是第二个）
+print(&quot;姓名：{1}\n年龄：{0}&quot;.format(age, name))     # 故意颠倒了
+
+# 方式3：名称占位（最清晰，推荐）
+print(&quot;姓名：{n}\n年龄：{a}&quot;.format(n=name, a=age))
+
+# 格式化数字
+print('所占百分比：{:.2%}'.format(19/22))           # 86.36%
+</code></pre>
+<h3>第三代：<code>f-string</code>（Python 3.6+，现代首选）</h3>
+<pre><code class="language-python">age = 20
+ave_score = 88.8534
+gender = '男'
+
+print(f&quot;年龄：{age}, 性别：{gender}, 平均成绩：{ave_score:.2f}&quot;)
+# → 年龄：20, 性别：男, 平均成绩：88.85
+</code></pre>
+<p><strong><code>:.2f</code> 的含义拆解：</strong>
+- <code>:</code> — 格式说明开始
+- <code>.2</code> — 保留 2 位小数
+- <code>f</code> — float 浮点数格式</p>
+<h3>三代对比</h3>
+<pre><code class="language-python">name = &quot;张三&quot;
+age = 27
+ave = 88.856
+
+# 第一代 % — C 风格，类型靠格式符控制
+&quot;姓名：%s, 年龄：%d, 成绩：%.2f&quot; % (name, age, ave)
+
+# 第二代 .format() — 用 {} 占位，类型自动推断
+&quot;姓名：{}, 年龄：{}, 成绩：{:.2f}&quot;.format(name, age, ave)
+
+# 第三代 f-string — 变量直接写进字符串（推荐！）
+f&quot;姓名：{name}, 年龄：{age}, 成绩：{ave:.2f}&quot;
+</code></pre>
+<blockquote>
+<p>日常用 f-string，需要模板复用时用 <code>.format()</code>，维护老代码时会看到 <code>%</code>。</p>
+</blockquote>
+<hr />
+<h2>三、查找与替换</h2>
+<h3><code>find()</code> — 查找子串位置</h3>
+<pre><code class="language-python">string = &quot;Pythontn&quot;
+string.find('t')         # 2  — 从头找，首次出现位置
+string.find('t', 5)      # 6  — 从第5位开始找
+string.find('z')         # -1 — 找不到返回 -1
+</code></pre>
+<p>= Java <code>indexOf("t")</code> / <code>indexOf("t", 5)</code>，找不到都返回 -1。</p>
+<blockquote>
+<p>Python 也有 <code>index()</code> 方法，但找不到会<strong>抛异常</strong>。日常用 <code>find()</code> 更安全。</p>
+</blockquote>
+<h3><code>in</code> — 子串存在判断</h3>
+<pre><code class="language-python">if &quot;python&quot; in &quot;Life is short.I use python&quot;:
+    print(&quot;找到了&quot;)
+</code></pre>
+<p>= Java <code>s.contains("python")</code>，但 Python 的 <code>in</code> 对 list 也适用，语法统一。</p>
+<h3><code>replace()</code> — 替换</h3>
+<pre><code class="language-python">s = &quot;All things Are difficult before they Are easy Are good&quot;
+
+s.replace(&quot;Are&quot;, &quot;are&quot;)       # 全部替换 → 3个Are都变are
+s.replace(&quot;Are&quot;, &quot;are&quot;, 2)    # 只替换前2个 → 第三个Are不变
+</code></pre>
+<blockquote>
+<p>⚠️ 字符串不可变！<code>s.replace(...)</code> 返回新字符串，必须 <code>s = s.replace(...)</code> 重新赋值。</p>
+</blockquote>
+<hr />
+<h2>四、分割与拼接</h2>
+<h3><code>split()</code> — 分割字符串 → 返回列表</h3>
+<pre><code class="language-python">s = &quot;The more efforts you make,the more fortune you get&quot;
+
+s.split()           # 默认按空白字符分割
+# → ['The', 'more', 'efforts', 'you', 'make,the', 'more', 'fortune', 'you', 'get']
+
+s.split('m')        # 按字母 'm' 分割（m 本身被丢弃）
+# → ['The ', 'ore efforts you ', 'ake,the ', 'ore fortune you get']
+
+s.split('e', 2)     # 按 'e' 分割，最多分割2次 → 产生3个元素
+# → ['Th', ' mor', ' efforts you make,the more fortune you get']
+</code></pre>
+<p>= Java <code>s.split(" ")</code>，参数语义完全一致。</p>
+<h3><code>join()</code> — 拼接列表 → 返回字符串</h3>
+<pre><code class="language-python">symbol = '*'
+world = 'Python'
+symbol.join(world)    # 'P*y*t*h*o*n' — 在每个字符之间插入 *
+
+# 实用场景
+&quot;-&quot;.join([&quot;2026&quot;, &quot;05&quot;, &quot;07&quot;])   # &quot;2026-05-07&quot;
+&quot;&quot;.join([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])         # &quot;abc&quot;
+</code></pre>
+<blockquote>
+<p>⚠️ <strong>join 方向记反是高频错误！</strong> 分隔符调 <code>.join(列表)</code>，不是列表调。
+- ✅ <code>"-".join(list)</code> ← 分隔符在前
+- ❌ <code>list.join("-")</code> ← 报错！</p>
+</blockquote>
+<h3><code>+</code> — 直接拼接</h3>
+<pre><code class="language-python">star = 'Py'
+end = 'thon'
+star + end   # 'Python'
+</code></pre>
+<hr />
+<h2>五、大小写转换</h2>
+<pre><code class="language-python">old = 'hello woRld'
+
+old.upper()       # 'HELLO WORLD'   — 全大写（= Java toUpperCase()）
+old.lower()       # 'hello world'   — 全小写（= Java toLowerCase()）
+old.capitalize()  # 'Hello world'   — 仅首字母大写
+old.title()       # 'Hello World'   — 每个单词首字母大写
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>效果</th>
+<th>Java 对比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>upper()</code></td>
+<td>HELLO WORLD</td>
+<td><code>toUpperCase()</code></td>
+</tr>
+<tr>
+<td><code>lower()</code></td>
+<td>hello world</td>
+<td><code>toLowerCase()</code></td>
+</tr>
+<tr>
+<td><code>capitalize()</code></td>
+<td>Hello world</td>
+<td>需手写</td>
+</tr>
+<tr>
+<td><code>title()</code></td>
+<td>Hello World</td>
+<td>需手写</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>capitalize()</code> vs <code>title()</code> 的区别：<code>capitalize()</code> 只变第一个单词首字母，<code>title()</code> 每个单词首字母都变。</p>
+</blockquote>
+<hr />
+<h2>六、空白处理</h2>
+<pre><code class="language-python">old = '  Life is short,Use Python!    '
+
+old.strip()   # 'Life is short,Use Python!'  — 去两端空白（= Java trim()）
+old.lstrip()  # 'Life is short,Use Python!    '  — 去左边空白
+old.rstrip()  # '  Life is short,Use Python!'  — 去右边空白
+
+# 高级：去掉指定字符（Java 没有直接等价）
+&quot;...hello...&quot;.strip(&quot;.&quot;)   # → &quot;hello&quot;
+</code></pre>
+<hr />
+<h2>七、对齐与填充</h2>
+<pre><code class="language-python">sentence = 'hello world'      # 长度 = 11
+
+sentence.center(13, '-')   # '-hello world-'   — 居中，总长13，- 填充
+sentence.ljust(13, '*')    # 'hello world**'    — 左对齐，* 填充右侧
+sentence.rjust(13, '%')    # '%%hello world'    — 右对齐，% 填充左侧
+</code></pre>
+<p><strong>参数含义：</strong> <code>s.xxx(width, fillchar)</code>
+- <code>width</code> — 目标总长度（如果 ≤ 原字符串长度，不填充）
+- <code>fillchar</code> — 填充字符（必须单字符，不写默认空格）</p>
+<hr />
+<h2>常见陷阱 TOP 5</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>错误写法</th>
+<th>问题</th>
+<th>正确写法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>s.replace("a","b")</code></td>
+<td>没赋值，结果被丢弃</td>
+<td><code>s = s.replace("a","b")</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>list.join("-")</code></td>
+<td>join 方向反了</td>
+<td><code>"-".join(list)</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>s.len()</code></td>
+<td>len 是函数不是方法</td>
+<td><code>len(s)</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>s[0] = "A"</code></td>
+<td>字符串不可变</td>
+<td><code>s = "A" + s[1:]</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>str s = "hi"</code></td>
+<td>Python 不声明类型</td>
+<td><code>s = "hi"</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>全部来源文件索引</h2>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>模块</th>
+<th>知识点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>字符串表示.py</td>
+<td>定义与转义</td>
+<td>单/双/三引号、<code>\'</code> <code>\"</code> 转义</td>
+</tr>
+<tr>
+<td>格式化字符串f-string.py</td>
+<td>格式化</td>
+<td>f-string + <code>:.2f</code> 精度控制</td>
+</tr>
+<tr>
+<td>格式化字符串format方法.py</td>
+<td>格式化</td>
+<td><code>.format()</code> 三种占位 + <code>:.2%</code></td>
+</tr>
+<tr>
+<td>格式化字符串%.py</td>
+<td>格式化</td>
+<td><code>%s</code> <code>%d</code> <code>%.2f</code></td>
+</tr>
+<tr>
+<td>字符串的查找与替换.py</td>
+<td>查找替换</td>
+<td><code>find()</code> + <code>replace()</code> count</td>
+</tr>
+<tr>
+<td>字符串的分割与拼接.py</td>
+<td>分割拼接</td>
+<td><code>split()</code> 三种 + <code>join()</code> + <code>+</code></td>
+</tr>
+<tr>
+<td>字符串大小写转换.py</td>
+<td>大小写</td>
+<td><code>upper/lower/capitalize/title</code></td>
+</tr>
+<tr>
+<td>字符串对齐.py</td>
+<td>对齐</td>
+<td><code>center/ljust/rjust</code></td>
+</tr>
+<tr>
+<td>删除字符串的指定字符.py</td>
+<td>空白处理</td>
+<td><code>strip/lstrip/rstrip</code></td>
+</tr>
+</tbody>
+</table></body>
+</html>

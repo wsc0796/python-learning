@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>笔记_内置函数速查.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><h1>Python 常用内置函数速查</h1>
+<blockquote>
+<p>内置函数 = 不需要 <code>import</code>，直接就能用的函数</p>
+</blockquote>
+<hr />
+<h2>一、输入输出</h2>
+<pre><code class="language-python">print(&quot;hello&quot;)           # 输出到控制台
+print(1, 2, 3, sep=&quot;-&quot;)  # 1-2-3，sep 指定分隔符
+print(&quot;a&quot;, end=&quot;&quot;)       # 不换行，默认 end=&quot;\n&quot;
+
+input(&quot;请输入：&quot;)          # 从控制台读入，返回字符串
+name = input(&quot;姓名：&quot;)     # 结果是 str 类型，需要数字要自己转
+</code></pre>
+<hr />
+<h2>二、类型转换</h2>
+<pre><code class="language-python">int(&quot;42&quot;)       # 字符串 → 整数：42
+int(3.9)        # 浮点数 → 整数：3（截断，不是四舍五入）
+float(&quot;3.14&quot;)   # 字符串 → 浮点数：3.14
+str(100)        # 任意类型 → 字符串：&quot;100&quot;
+bool(1)         # → True；bool(0) → False；bool(&quot;&quot;) → False
+list(&quot;abc&quot;)     # → ['a', 'b', 'c']
+tuple([1,2,3])  # → (1, 2, 3)
+set([1,2,2,3])  # → {1, 2, 3}（去重）
+dict([(&quot;a&quot;,1)]) # → {'a': 1}
+</code></pre>
+<hr />
+<h2>三、序列操作</h2>
+<pre><code class="language-python">len([1, 2, 3])        # 长度：3
+len(&quot;你好&quot;)            # 字符串长度：2（一个中文字算一个）
+
+range(5)              # → 0,1,2,3,4
+range(2, 5)           # → 2,3,4
+range(0, 10, 2)       # → 0,2,4,6,8
+
+enumerate([&quot;a&quot;,&quot;b&quot;])  # → (0,&quot;a&quot;), (1,&quot;b&quot;)，遍历时带索引
+zip([1,2], [&quot;a&quot;,&quot;b&quot;]) # → (1,&quot;a&quot;), (2,&quot;b&quot;)，并行遍历多个列表
+
+reversed([1,2,3])     # → 3,2,1（返回迭代器）
+sorted([3,1,2])       # → [1,2,3]（返回新列表）
+sorted([3,1,2], reverse=True)  # → [3,2,1]
+</code></pre>
+<hr />
+<h2>四、数学相关</h2>
+<pre><code class="language-python">abs(-5)          # 绝对值：5
+max(1, 3, 2)     # 最大值：3
+max([1, 3, 2])   # 也支持列表
+min(1, 3, 2)     # 最小值：1
+sum([1, 2, 3])   # 求和：6
+round(3.14159)   # 四舍五入：3
+round(3.14159, 2) # 保留2位小数：3.14
+
+pow(2, 3)        # 2³：8，等价于 2**3
+divmod(10, 3)    # (商, 余数)：(3, 1)
+</code></pre>
+<hr />
+<h2>五、类型判断与检查</h2>
+<pre><code class="language-python">type(123)        # &lt;class 'int'&gt;
+type(&quot;abc&quot;)      # &lt;class 'str'&gt;
+type([1,2])      # &lt;class 'list'&gt;
+
+isinstance(123, int)        # True
+isinstance(&quot;abc&quot;, str)      # True
+isinstance([1,2], (list, tuple))  # 检查多种类型
+
+id(123)          # 对象的内存地址（整数）
+id(&quot;hello&quot;)      # 字符串的内存地址
+</code></pre>
+<hr />
+<h2>六、其他常用</h2>
+<pre><code class="language-python"># 查看对象的所有属性和方法
+dir([])          # 列出列表的所有方法
+
+# 返回布尔值
+all([True, 1, &quot;a&quot;])    # True（所有元素为真）
+any([0, &quot;&quot;, &quot;a&quot;])      # True（至少一个为真）
+
+# 帮助
+help(print)      # 查看函数的文档
+</code></pre>
+<hr />
+<h2>七、一句话记</h2>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>记住这几个就行</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输入输出</td>
+<td><code>print()</code> <code>input()</code></td>
+</tr>
+<tr>
+<td>类型转换</td>
+<td><code>int()</code> <code>str()</code> <code>float()</code> <code>bool()</code> <code>list()</code> <code>dict()</code></td>
+</tr>
+<tr>
+<td>序列</td>
+<td><code>len()</code> <code>range()</code> <code>enumerate()</code> <code>zip()</code> <code>sorted()</code> <code>reversed()</code></td>
+</tr>
+<tr>
+<td>数学</td>
+<td><code>max()</code> <code>min()</code> <code>sum()</code> <code>abs()</code> <code>round()</code></td>
+</tr>
+<tr>
+<td>检查</td>
+<td><code>type()</code> <code>isinstance()</code> <code>id()</code></td>
+</tr>
+</tbody>
+</table></body>
+</html>

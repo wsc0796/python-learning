@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>theory_11_closure_decorator.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><hr />
+<p>aliases:
+  - 11-closure-decorator</p>
+<hr />
+<h1>闭包 + 装饰器：搞懂 @xxx 到底在干什么</h1>
+<blockquote>
+<p>前置：已掌握函数定义、函数嵌套、<code>@property</code> 和 <code>@classmethod</code>
+目标：理解装饰器原理，看懂 FastAPI 的 <code>@app.get("/path")</code>
+用时：约 15 分钟</p>
+</blockquote>
+<p>相关笔记：<a href="../25-function-basics/theory_25_function_basics.md">函数基础</a> · <a href="../16-python-gaps/theory_16_python_gaps.md">Python 基础补漏（作用域/*args）</a> · <a href="../00-学习路线/课堂老师程序-函数专题对照.md">课堂老师函数程序对照</a></p>
+<hr />
+<h2>一、热身：函数也是变量</h2>
+<p>先接受一个事实：<strong>Python 里函数和数字、字符串一样，可以赋值、可以当参数传</strong>。</p>
+<pre><code class="language-python">def say_hello(name):
+    return f&quot;你好, {name}!&quot;
+
+# 函数可以赋值给变量
+greeter = say_hello
+print(greeter(&quot;张三&quot;))   # 你好, 张三!
+
+# 函数可以当参数传
+def run(func, arg):
+    return func(arg)
+
+print(run(say_hello, &quot;李四&quot;))  # 你好, 李四!
+</code></pre>
+<p>这不神奇——只是 Python 把函数当作"一等公民"（first-class citizen），和整数、字符串地位一样。</p>
+<hr />
+<h2>二、闭包：函数记住了它出生时的环境</h2>
+<h3>一个现象</h3>
+<pre><code class="language-python">def make_multiplier(n):
+    def multiplier(x):
+        return x * n       # multiplier 用了外面的 n
+    return multiplier
+
+double = make_multiplier(2)
+triple = make_multiplier(3)
+
+print(double(5))   # 10
+print(triple(5))   # 15
+</code></pre>
+<p><code>make_multiplier(2)</code> 结束之后，按理说变量 <code>n=2</code> 应该消失了——但 <code>double(5)</code> 仍然记得 <code>n=2</code>。</p>
+<p><strong>这就是闭包</strong>：内部函数 <code>multiplier</code> 把外部函数 <code>make_multiplier</code> 的变量 <code>n</code> 给"记住"了。</p>
+<h3>闭包的三个条件</h3>
+<ol>
+<li>函数里定义函数（嵌套）</li>
+<li>内部函数用了外部函数的变量</li>
+<li>外部函数把内部函数返回出去</li>
+</ol>
+<h3>闭包的经典用途：计数器</h3>
+<pre><code class="language-python">def create_counter(start=0):
+    count = start
+    def counter():
+        nonlocal count       # ← 声明 count 不是本地变量，是来自外层的
+        count += 1
+        return count - 1
+    return counter
+
+c = create_counter(10)
+print(c())   # 10
+print(c())   # 11
+print(c())   # 12
+</code></pre>
+<p><strong><code>nonlocal</code> 的作用</strong>：告诉 Python "这个 <code>count</code> 不是本函数的局部变量，来自外层函数"。没有 <code>nonlocal</code>，内部函数里给 <code>count += 1</code> 会报错。</p>
+<pre><code class="language-python"># 没有 nonlocal 的后果
+def bad_counter(start=0):
+    count = start
+    def counter():
+        count += 1     # ❌ UnboundLocalError
+        return count
+    return counter
+</code></pre>
+<p><strong>为什么需要 <code>nonlocal</code></strong>：Python 的变量赋值机制——<code>count += 1</code> 等价于 <code>count = count + 1</code>，这会在内部函数新建一个局部变量 <code>count</code>，和外层的 <code>count</code> 没关系。<code>nonlocal</code> 说"别新建，用外层的"。</p>
+<h3>一句话记</h3>
+<blockquote>
+<p>闭包 = 内部函数 + 它记住的外部变量。<code>nonlocal</code> 让内部函数能修改这些"记住的"变量。</p>
+</blockquote>
+<hr />
+<h2>三、装饰器：给函数套一层包装</h2>
+<h3>装饰器是什么</h3>
+<p><strong>装饰器 = 接收一个函数，返回一个新函数的函数</strong>。</p>
+<pre><code class="language-python">def log_calls(func):
+    &quot;&quot;&quot;装饰器：在调用前后打日志&quot;&quot;&quot;
+    def wrapper(*args, **kwargs):
+        print(f&quot;调用 {func.__name__}()&quot;)
+        result = func(*args, **kwargs)
+        print(f&quot;{func.__name__}() 返回 {result}&quot;)
+        return result
+    return wrapper
+</code></pre>
+<p>用法：</p>
+<pre><code class="language-python"># 方式1：手动套
+def add(a, b):
+    return a + b
+
+add = log_calls(add)     # add 被替换成了 wrapper
+print(add(3, 5))
+# 调用 add()
+# add() 返回 8
+# 8
+
+# 方式2：@ 语法糖（完全等价）
+@log_calls
+def add(a, b):
+    return a + b
+# ↑ 这两行等价于 add = log_calls(add)
+</code></pre>
+<p><strong><code>@</code> 只是一个快捷写法</strong>，它把下面的函数作为参数传给装饰器，然后用返回值替换原函数。</p>
+<h3>装饰器的数据流</h3>
+<pre><code class="language-python">@log_calls
+def add(a, b):
+    return a + b
+</code></pre>
+<p>等价于：</p>
+<pre><code>add = log_calls(add)
+     ↓
+log_calls 接收 add 函数
+     ↓
+返回 wrapper 函数
+     ↓
+add 被替换成 wrapper
+     ↓
+调用 add(3,5) → 实际执行 wrapper(3,5)
+     ↓
+wrapper 打日志 → 调原 add(3,5) → 返回结果
+</code></pre>
+<h3>你已经用过的装饰器</h3>
+<pre><code class="language-python">@property         # 把方法变成属性读取
+@classmethod    # 第一个参数变成 cls 而不是 self
+@staticmethod   # 去掉 self 和 cls
+</code></pre>
+<h3>为什么要用闭包来实现装饰器？</h3>
+<p>因为装饰器需要<strong>记住原函数</strong>（外部变量 <code>func</code>），并在 <code>wrapper</code> 里调用它——这天然就是个闭包。</p>
+<pre><code class="language-python">def log_calls(func):       # ← 外部函数，接收原函数
+    def wrapper(*args, **kwargs):   # ← 内部函数（包装）
+        # func 被 wrapper 记住了（闭包）
+        result = func(*args, **kwargs)
+        return result
+    return wrapper          # ← 返回内部函数
+</code></pre>
+<h3>🔬 破坏实验</h3>
+<pre><code class="language-python"># 如果装饰器什么都不做？
+def do_nothing(func):
+    return func          # 直接返回原函数
+
+@do_nothing
+def hello():
+    return &quot;Hello!&quot;
+
+print(hello())    # ？还能正常调吗？
+
+# 如果装饰器返回的不是函数？
+def return_int(func):
+    return 42
+
+@return_int
+def hello():
+    return &quot;Hello!&quot;
+
+print(hello)      # ？hello 变成什么了？
+# hello()         # ？这个会怎样？
+</code></pre>
+<hr />
+<h2>四、带参数的装饰器：<code>@app.get("/path")</code></h2>
+<h3>三层嵌套</h3>
+<p>FastAPI 里这种写法你见过：</p>
+<pre><code class="language-python">app = FastAPI()
+
+@app.get(&quot;/hello&quot;)
+def hello():
+    return {&quot;msg&quot;: &quot;Hello!&quot;}
+</code></pre>
+<p>这里 <code>@app.get("/hello")</code> 不是普通的装饰器——它<strong>先调用了 <code>app.get("/hello")</code> 方法，这个方法的返回值才是真正的装饰器</strong>。</p>
+<p>三层结构：</p>
+<pre><code class="language-python">第一层：接收参数（&quot;/hello&quot;）
+   ↓
+第二层：接收函数（hello）
+   ↓
+第三层：包装函数（wrapper）
+</code></pre>
+<h3>模拟实现</h3>
+<pre><code class="language-python">class FakeApp:
+    def __init__(self):
+        self.routes = {}              # 存路由表
+
+    def get(self, path):              # ← 第一层：接收路径参数
+        def decorator(func):          # ← 第二层：接收函数（真正的装饰器）
+            self.routes[path] = func  #   → 把路径和函数注册到路由表
+            return func               #   → 返回原函数（不包装，因为是注册模式）
+        return decorator              # ← 返回装饰器
+</code></pre>
+<p>执行流程：</p>
+<pre><code>@app.get(&quot;/hello&quot;)
+def hello():
+    return &quot;Hello!&quot;
+</code></pre>
+<p>等价于：</p>
+<pre><code>@app.get(&quot;/hello&quot;)   →  app.get(&quot;/hello&quot;)  → 返回 decorator
+@decorator           →  decorator(hello)   → 把 hello 注册到 self.routes[&quot;/hello&quot;]
+def hello():
+    return &quot;Hello!&quot;
+</code></pre>
+<h3>完整的例子</h3>
+<pre><code class="language-python">app = FakeApp()
+
+@app.get(&quot;/hello&quot;)
+def hello():
+    return &quot;Hello!&quot;
+
+@app.get(&quot;/status&quot;)
+def status():
+    return {&quot;status&quot;: &quot;ok&quot;}
+
+print(app.routes)
+# {'/hello': &lt;function hello&gt;, '/status': &lt;function status&gt;}
+</code></pre>
+<p><strong>对比普通装饰器</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>普通装饰器</th>
+<th><code>@app.get("/path")</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>层数</td>
+<td>2层（外=收函数，内=包装）</td>
+<td>3层（外=收参数，中=收函数，内=包装）</td>
+</tr>
+<tr>
+<td>典型用途</td>
+<td>打日志、计时、权限校验</td>
+<td>路由注册、配置绑定</td>
+</tr>
+<tr>
+<td>调用方式</td>
+<td><code>@decorator</code></td>
+<td><code>@obj.method(arg)</code></td>
+</tr>
+</tbody>
+</table>
+<h3>🔬 破坏实验</h3>
+<pre><code class="language-python"># 三层装饰器少一层的后果
+def bad_decorator(path):
+    # 少写了中间那层
+    pass  # 根本没有返回装饰器
+
+@bad_decorator(&quot;/test&quot;)   # 会报什么错？
+def test():
+    return &quot;test&quot;
+</code></pre>
+<hr />
+<h2>五、多个装饰器叠加</h2>
+<pre><code class="language-python">def bold(func):
+    def wrapper(*args, **kwargs):
+        return f&quot;&lt;b&gt;{func(*args, **kwargs)}&lt;/b&gt;&quot;
+    return wrapper
+
+def italic(func):
+    def wrapper(*args, **kwargs):
+        return f&quot;&lt;i&gt;{func(*args, **kwargs)}&lt;/i&gt;&quot;
+    return wrapper
+
+@bold
+@italic
+def greet(name):
+    return f&quot;Hello, {name}!&quot;
+
+print(greet(&quot;World&quot;))
+</code></pre>
+<p>输出什么？</p>
+<p>执行顺序是<strong>从下往上</strong>装饰，<strong>从上往下</strong>执行：</p>
+<pre><code>原始 greet = &quot;Hello, World!&quot;
+
+@italic 装饰后 → &quot;&lt;i&gt;Hello, World!&lt;/i&gt;&quot;
+    ↑ 先装饰 italic
+
+@bold 装饰后 → &quot;&lt;b&gt;&lt;i&gt;Hello, World!&lt;/i&gt;&lt;/b&gt;&quot;
+    ↑ 再装饰 bold
+</code></pre>
+<p>等价于：</p>
+<pre><code class="language-python">greet = bold(italic(greet))
+</code></pre>
+<blockquote>
+<p>装饰器叠加顺序：<strong>离函数最近的最先装饰，离函数最远的最后包装</strong>。</p>
+</blockquote>
+<hr />
+<h2>总结</h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>一句话</th>
+<th>什么时候用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>函数即变量</td>
+<td>函数可以赋值、当参数传</td>
+<td>理解装饰器的基础</td>
+</tr>
+<tr>
+<td>闭包</td>
+<td>内部函数记住外部变量</td>
+<td>计数器、缓存、装饰器底层实现</td>
+</tr>
+<tr>
+<td>装饰器（2层）</td>
+<td><code>@xxx</code> = 接收函数，返回新函数</td>
+<td>打日志、计时、权限校验</td>
+</tr>
+<tr>
+<td>装饰器（3层）</td>
+<td><code>@xxx(arg)</code> = 先调外层收参数，返回装饰器</td>
+<td>FastAPI 路由注册、配置绑定</td>
+</tr>
+<tr>
+<td>叠加</td>
+<td><code>@A</code> <code>@B</code> = <code>A(B(func))</code></td>
+<td>多个独立关注点组合</td>
+</tr>
+</tbody>
+</table></body>
+</html>

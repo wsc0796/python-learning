@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>课堂老师程序-函数专题对照.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><hr />
+<p>date: 2026-05-27
+source: C:\Users\50469\Desktop\python实验\课堂老师程序
+status: 已整理</p>
+<hr />
+<h1>课堂老师程序对照：第六章函数</h1>
+<p><strong>关联笔记：</strong> [[25-function-basics/theory_25_function_basics|25-function-basics]] · [[11-closure-decorator/theory_11_closure_decorator|11-closure-decorator]] · [[16-python-gaps/theory_16_python_gaps|16-python-gaps]] · [[10-fastapi/theory_10_fastapi|10-fastapi]] · [[16-python-gaps/笔记_高阶函数]]</p>
+<hr />
+<h2>如果你只有时间读三句话</h2>
+<ol>
+<li><strong>老师这批代码在讲什么</strong>：Python 函数的核心机制——定义、传参、返回值、作用域、嵌套、装饰器。这是你当初看 FastAPI 一头雾水的底层原因。你的 [[25-function-basics/theory_25_function_basics|25-function-basics]] 是同一批知识的更详细版本。</li>
+<li><strong>这和你什么关系</strong>：FastAPI 的 <code>@app.get</code> 本质就是装饰器（[[11-closure-decorator/theory_11_closure_decorator|11-closure-decorator]] 已经讲过），<code>def create_note(note: NoteCreate)</code> 本质就是函数定义，<code>Depends()</code> 本质就是框架帮你传参。不懂函数机制，FastAPI（[[10-fastapi/theory_10_fastapi|10-fastapi]]）就是空中楼阁。</li>
+<li><strong>怎么用这份笔记</strong>：按顺序看，每个概念分四步——看老师代码 → 看解释 → 看 FastAPI 映射 → 关文件自己说一遍。</li>
+</ol>
+<hr />
+<h2>一、函数定义和调用</h2>
+<h3>老师代码</h3>
+<pre><code class="language-python">def fn():
+    pass
+
+def add():
+    result = 11 + 22
+    print(result)
+
+def add_modify(a, b):
+    result = a + b
+    return result
+
+# 函数是对象，可以赋值
+x = add
+x()
+
+# 调用有参函数
+print(add_modify(10, 20))
+</code></pre>
+<h3>它在说什么</h3>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>def fn(): pass</code></td>
+<td>定义一个什么都不做的函数</td>
+</tr>
+<tr>
+<td><code>add()</code> 输出 33</td>
+<td>函数定义后<strong>不会自动执行</strong>，必须用 <code>()</code> 调用</td>
+</tr>
+<tr>
+<td><code>x = add; x()</code></td>
+<td>函数是<strong>第一类对象</strong>——可以赋值给变量</td>
+</tr>
+<tr>
+<td><code>add_modify(10, 20)</code></td>
+<td>带参数的函数：调用时传入实际值</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>理解：</strong> 函数是"先定义，后使用"的代码块。定义时只是注册，调用时才执行。这个区分是所有后续概念的基础。详细展开见 [[25-function-basics/theory_25_function_basics|25-function-basics]]。</p>
+</blockquote>
+<h3>FastAPI 映射</h3>
+<p>对应 [[10-fastapi/theory_10_fastapi|10-fastapi]] 的路由注册、[[10-fastapi/theory_10_fastapi#16-Depends：让-FastAPI-帮你拿对象|Depends 依赖注入]]。</p>
+<pre><code class="language-python"># 这就是一个普通的函数定义
+@app.post(&quot;/notes&quot;)
+def create_note(note: NoteCreate, service: NoteServiceDep) -&gt; NoteRead:
+    return service.create_note(note)
+
+# 你不手动调用它——FastAPI 替你调用
+# 浏览器发 POST /notes → FastAPI 拿到请求 → 调用 create_note(...)
+</code></pre>
+<blockquote>
+<p><strong>💡 为什么你不明白——因为你没见过"有人替你调用"这种模式</strong></p>
+<p>到目前为止你见过的所有函数调用都是 <strong>你主动写代码去调</strong>：</p>
+<p><code>python
+result = add_modify(10, 20)   # ← 你亲自调用的</code></p>
+<p>但 FastAPI 的模式是：<strong>你只管定义函数，框架在合适的时机替你调用它</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>对比</th>
+<th>老师代码</th>
+<th>FastAPI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>调用者</td>
+<td>你自己写 <code>add_modify(10, 20)</code></td>
+<td>FastAPI 框架自动调用</td>
+</tr>
+<tr>
+<td>触发时机</td>
+<td>代码执行到这行</td>
+<td>收到 HTTP 请求时</td>
+</tr>
+<tr>
+<td>参数来源</td>
+<td>你手动传入</td>
+<td>框架从 HTTP 请求提取</td>
+</tr>
+<tr>
+<td>return 结果去哪</td>
+<td>回到你的代码里</td>
+<td>框架接管，序列化后发回浏览器</td>
+</tr>
+</tbody>
+</table>
+<p>打个比方：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>普通函数调用</td>
+<td>你打电话给外卖店 → 你主动拨号 → 对方接听 → 你拿到结果</td>
+</tr>
+<tr>
+<td>FastAPI 路由</td>
+<td>你开了一家店装了电话 → 你告诉店员怎么接 → 电话响时店员自动接 → 按你教的回答</td>
+</tr>
+</tbody>
+</table>
+<p>函数本身完全没变——都是 <code>def 函数名(参数): 处理逻辑 return 结果</code>。变的只是<strong>调用者从你变成了框架</strong>。</p>
+</blockquote>
+<hr />
+<h2>二、return——函数把结果交到哪里</h2>
+<h3>老师代码</h3>
+<pre><code class="language-python"># return 把结果&quot;扔回&quot;调用处
+def filter_sensitive_words(words):
+    if &quot;山寨&quot; in words:
+        new_words = words.replace(&quot;山寨&quot;, &quot;*&quot;)
+    return new_words
+
+result = filter_sensitive_words(&quot;这个手机是山寨版的吧！&quot;)
+print(result)  # 这个手机是*版的吧！
+</code></pre>
+<p><strong>核心：</strong> <code>return</code> 不是打印，是把值传递给调用者。没有 <code>return</code>，函数返回 <code>None</code>。</p>
+<h3>多个返回值本质是元组</h3>
+<pre><code class="language-python">def move(x, y, step):
+    nx = x + step
+    ny = y - step
+    return nx, ny
+
+# 解包接收
+a, b = move(100, 100, 60)  # a=160, b=40
+
+# 也可以当元组收
+result = move(100, 100, 60)
+print(type(result))  # &lt;class 'tuple'&gt;
+print(result)        # (160, 40)
+</code></pre>
+<p><strong>关键理解：</strong> Python 没有"返回多个值"，<code>return nx, ny</code> 实际上是 <code>return (nx, ny)</code>——一个元组。</p>
+<h3>FastAPI 映射</h3>
+<pre><code class="language-python">@app.post(&quot;/notes&quot;)
+def create_note(note: NoteCreate, service: NoteServiceDep) -&gt; NoteRead:
+    return service.create_note(note)
+    # return 的值 → FastAPI → 自动转 JSON → 返回给前端
+</code></pre>
+<p>老师代码里 <code>return</code> 交给 <code>print</code>，FastAPI 里 <code>return</code> 交给框架序列化。<strong>本质都是把值传到函数外面。</strong></p>
+<blockquote>
+<p><strong>💡 <code>return</code> 之后发生了什么——FastAPI 内部帮你做了 3 件事</strong></p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>发生了什么</th>
+<th>代码层面</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第 1 步：拿到返回值</td>
+<td><code>service.create_note(note)</code> 返回一个 Python 对象，比如 <code>NoteRead(id=1, content="你好", ...)</code></td>
+<td>对象在内存中</td>
+</tr>
+<tr>
+<td>第 2 步：序列化</td>
+<td>FastAPI 调 Pydantic 的 <code>.model_dump()</code> 把对象转字典，再转成 JSON 字符串</td>
+<td><code>{"id":1,"content":"你好"}</code> → <code>'{"id":1,...}'</code></td>
+</tr>
+<tr>
+<td>第 3 步：发回浏览器</td>
+<td>包装成 HTTP 响应报文，Uvicorn 通过 TCP 网络发出去</td>
+<td><code>HTTP/1.1 200 OK</code> + JSON 体</td>
+</tr>
+</tbody>
+</table>
+<p>对比一下就懂了：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>流程</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>老师代码</td>
+<td><code>return a + b</code> → <code>print(result)</code> ← 结果到控制台就结束了</td>
+</tr>
+<tr>
+<td>FastAPI</td>
+<td><code>return obj</code> → FastAPI 序列化 → HTTP 响应 → 网络传输 → 浏览器看到 JSON</td>
+</tr>
+</tbody>
+</table>
+<p>区别不是 <code>return</code> 变了，而是 <strong>return 之后接的东西不同</strong>。</p>
+</blockquote>
+<hr />
+<h2>三、参数传递——怎么把数据送进函数</h2>
+<h3>3.1 位置参数</h3>
+<pre><code class="language-python">def get_max(a, b):
+    if a &gt; b:
+        print(a, &quot;是较大的值&quot;)
+    else:
+        print(b, &quot;是较大的值&quot;)
+
+get_max(8, 5)  # 8 是较大的值 —— a=8, b=5，按顺序匹配
+</code></pre>
+<h3>3.2 关键字参数</h3>
+<pre><code class="language-python">def fn(a, b):
+    print(a, b)
+
+fn(b=5, a=10)  # 10 5 —— 指定名字传参，顺序无所谓
+</code></pre>
+<blockquote>
+<p><strong>💡 通俗版：位置参数是"按座位坐"，关键字参数是"喊名字"</strong></p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>类比</th>
+<th>代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>位置参数</td>
+<td>老师喊"按学号入座"——1 号坐第 1 个位，顺序必须对</td>
+<td><code>fn(8, 5)</code></td>
+</tr>
+<tr>
+<td>关键字参数</td>
+<td>"张三坐李四的位置也行，只要你喊名字"——报名字就能对上</td>
+<td><code>fn(b=5, a=10)</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>用位置参数</th>
+<th>用关键字参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>参数很少，一看就懂</td>
+<td><code>add(1, 2)</code> ✅</td>
+<td>没必要</td>
+</tr>
+<tr>
+<td>参数很多，怕搞混顺序</td>
+<td>容易传错 ❌</td>
+<td><code>create_user(name="张三", age=20, city="南昌")</code> ✅</td>
+</tr>
+<tr>
+<td>只传其中几个参数</td>
+<td>必须全传 ❌</td>
+<td><code>fn(a=10)</code> 只传 a ✅</td>
+</tr>
+</tbody>
+</table>
+<p>一句话：<strong>位置参数省事但死板，关键字参数啰嗦但保险。</strong></p>
+</blockquote>
+<h3>3.3 仅限位置参数（<code>/</code>）</h3>
+<pre><code class="language-python">def func(a, b, /, c):        # / 前面 a,b 只能用位置传
+    print(a, b, c)
+
+func(10, 20, 30)             # 正确
+func(10, 20, c=30)           # 正确
+# func(a=10, b=20, c=30)     # 错误！a,b 不能用关键字传
+</code></pre>
+<h3>3.4 默认参数</h3>
+<pre><code class="language-python">def fn(a, b, c=100):        # c 不传就用 100
+    print(a, b, c)
+
+fn(10, 20)                   # 10 20 100
+fn(10, 20, c=30)             # 10 20 30
+</code></pre>
+<h3>FastAPI 映射</h3>
+<p>对应 [[10-fastapi/theory_10_fastapi#6-路径参数：从-URL-路径里拿值|路径参数]] 和 [[10-fastapi/theory_10_fastapi#7-查询参数：从问号后面拿值|查询参数]] 两节。</p>
+<pre><code class="language-python">@app.get(&quot;/notes/{note_id}&quot;)           # note_id 从 URL 路径来（位置隐射）
+def get_note(note_id: int, q: str = None):  # q 有默认值，可选参数
+    ...
+
+@app.get(&quot;/items&quot;)
+def list_items(skip: int = 0, limit: int = 10):  # 查询参数默认值
+    ...
+</code></pre>
+<p><strong>本质：</strong> 框架从 HTTP 请求中提取数据，按参数名/位置传给函数。你定义的参数就是框架填的槽。</p>
+<hr />
+<h2>四、<code>*args</code> 和 <code>**kwargs</code>——参数打包</h2>
+<h3>打包</h3>
+<pre><code class="language-python"># *args：把多个位置参数打包成元组
+def test(*args):
+    print(type(args))  # &lt;class 'tuple'&gt;
+    print(args)        # (61, 22, 13, 44, 55)
+
+test(61, 22, 13, 44, 55)
+
+# **kwargs：把多个关键字参数打包成字典
+def test(**kwargs):
+    print(type(kwargs))  # &lt;class 'dict'&gt;
+    print(kwargs)        # {'a': 11, 'b': 22, 'c': 33, 'd': 44, 'e': 55}
+
+test(a=11, b=22, c=33, d=44, e=55)
+</code></pre>
+<h3>解包</h3>
+<pre><code class="language-python"># *tuple：把元组拆开按位置传
+def test(a, b, c, d, e):
+    print(a, b, c, d, e)
+
+nums = (11, 22, 33, 44, 55)
+test(*nums)  # 等价于 test(11, 22, 33, 44, 55)
+
+
+# **dict：把字典拆开按关键字传
+nums = {&quot;a&quot;: 11, &quot;b&quot;: 22, &quot;c&quot;: 33, &quot;d&quot;: 44, &quot;e&quot;: 55}
+test(**nums)  # 等价于 test(a=11, b=22, c=33, d=44, e=55)
+</code></pre>
+<blockquote>
+<p><strong>理解：</strong> 打包和解包是对称的——</p>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th><code>*</code> 的作用</th>
+<th><code>**</code> 的作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>定义形参时</td>
+<td><code>*args</code>：多个位置参数 → 元组</td>
+<td><code>**kwargs</code>：多个关键字参数 → 字典</td>
+</tr>
+<tr>
+<td>调用实参时</td>
+<td><code>*tuple</code>：元组 → 多个位置参数</td>
+<td><code>**dict</code>：字典 → 多个关键字参数</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>详细讲解见 [[16-python-gaps/theory_16_python_gaps#5-args-和-kwargs|<em>args/</em>*kwargs]] 和 [[16-python-gaps/笔记_高阶函数]]。</p>
+<h3>混合传递顺序规则</h3>
+<pre><code class="language-python">def test(a, b, c=33, *args, **kwargs):
+    print(a, b, c, args, kwargs)
+
+test(1, 2)              # 1 2 33 () {}
+test(1, 2, 3)           # 1 2 3 () {}
+test(1, 2, 3, 4)        # 1 2 3 (4,) {}
+test(1, 2, 3, 4, e=5)   # 1 2 3 (4,) {'e': 5}
+</code></pre>
+<p><strong>顺序铁律：</strong> 普通参数 → 默认参数 → <code>*args</code> → <code>**kwargs</code></p>
+<h3>FastAPI 映射</h3>
+<pre><code class="language-python">def new_function(*args, **kwargs):
+    result = old(*args, **kwargs)
+    return result
+</code></pre>
+<p>装饰器里 <code>*args, **kwargs</code> 起到<strong>透明转发</strong>的作用——包装函数不知道原函数签名，但用打包再解包就能原样转发。这是 FastAPI 装饰器能包装各种不同参数路由函数的原因，见 [[16-python-gaps/笔记_高阶函数]] 的 <code>run</code> 函数模式。</p>
+<hr />
+<h2>五、作用域——变量在哪里有效</h2>
+<h3>局部变量</h3>
+<pre><code class="language-python">def test_one():
+    number = 10       # 局部变量：函数内部有效
+    print(number)
+
+test_one()            # 10
+# print(number)       # 报错！函数外访问不到
+</code></pre>
+<pre><code class="language-python"># 不同函数可以有同名变量，互不影响
+def test_one():
+    number = 10
+    print(number)     # 10
+
+def test_two():
+    number = 20
+    print(number)     # 20
+</code></pre>
+<h3>全局变量——只能读不能直接改</h3>
+<pre><code class="language-python">number = 10           # 全局变量
+
+def test_one():
+    print(number)     # 能读：10
+    # number += 2     # 报错！不能直接改——Python 认为你在定义局部变量
+
+test_one()
+print(number)         # 10（没变）
+</code></pre>
+<h3>global——声明要改全局变量</h3>
+<pre><code class="language-python">number = 10
+
+def test_one():
+    global number     # 声明：我要改的是全局那个 number
+    number += 1
+    print(number)     # 11
+
+test_one()
+print(number)         # 11（真的改了）
+</code></pre>
+<h3>nonlocal——改外层函数的变量</h3>
+<pre><code class="language-python">def test(a):
+    number = 10
+    def test_in():
+        nonlocal number   # 声明：我要改的是外层函数的 number，不是全局
+        number += 20
+        print(number, a)  # 30 15
+    test_in()
+    print(number)         # 30（被内层改了）
+
+test(15)
+</code></pre>
+<blockquote>
+<p><strong>理解：</strong> 变量查找顺序——<strong>局部 → 外层函数 → 全局 → 内置</strong>（LEGB 法则，见 [[16-python-gaps/theory_16_python_gaps#10-变量作用域legb-规则|LEGB 规则]]）。</p>
+<p><strong>💡 <code>nonlocal</code> 可以连续用吗？—— 可以，它会一级一级往上链</strong></p>
+<p>你问的是这种场景：三层嵌套，每层都用 <code>nonlocal</code>，能不能一路改到最外层？</p>
+<p>```python
+def outer():
+    x = 1
+    def middle():
+        nonlocal x       # middle 说：x 是 outer 的 x
+        x += 10
+        def inner():
+            nonlocal x   # inner 说：x 是 middle 的 x（而 middle 的 x 就是 outer 的 x）
+            x += 100
+        inner()
+        print(f"middle 里 x = {x}")  # 111
+    middle()
+    print(f"outer 里 x = {x}")       # 111</p>
+<p>outer()
+```</p>
+<table>
+<thead>
+<tr>
+<th>执行顺序</th>
+<th><code>x</code> 的值</th>
+<th>谁改的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初始</td>
+<td>1</td>
+<td><code>outer</code> 定义</td>
+</tr>
+<tr>
+<td><code>middle()</code> 中 <code>x += 10</code></td>
+<td>11</td>
+<td><code>middle</code> 的 <code>nonlocal x</code> 指向 <code>outer</code></td>
+</tr>
+<tr>
+<td><code>inner()</code> 中 <code>x += 100</code></td>
+<td>111</td>
+<td><code>inner</code> 的 <code>nonlocal x</code> 指向 <code>middle</code>（而 <code>middle</code> 的 <code>x</code> 就是 <code>outer</code> 的 <code>x</code>）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>机制：</strong> <code>nonlocal</code> 不是"跳到指定层"，而是"找最近的外层"。如果最近的外层本身也是 <code>nonlocal</code>，它就顺着链条往上走，最终都指向同一个变量。</p>
+<p>不过实际代码很少写三层 <code>nonlocal</code> 连环套——两层（闭包/装饰器）已经够用了。</p>
+<table>
+<thead>
+<tr>
+<th>关键字</th>
+<th>作用域</th>
+<th>用于</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无</td>
+<td>局部 / 全局</td>
+<td>大多数情况</td>
+</tr>
+<tr>
+<td><code>global</code></td>
+<td>在函数内修改全局变量</td>
+<td>配置、计数器</td>
+</tr>
+<tr>
+<td><code>nonlocal</code></td>
+<td>在内层函数修改外层函数的变量</td>
+<td>闭包、装饰器</td>
+</tr>
+</tbody>
+</table>
+<p><code>global</code> 和 <code>nonlocal</code> 就是告诉 Python"跳过局部这个层级，直接去更外层找"。</p>
+</blockquote>
+<hr />
+<h2>六、嵌套函数和闭包</h2>
+<pre><code class="language-python">def add_modify(a, b):
+    result = a + b
+    print(result)
+
+    def test():              # 内部定义函数
+        print(&quot;我是内层函数&quot;)
+
+    test()                   # 外层调用内层
+
+add_modify(10, 20)           # 30 \n 我是内层函数
+# 外部无法调用 test()——它只在 add_modify 内部可见
+</code></pre>
+<p><strong>关键理解：</strong> 内层函数相当于外层函数的"私有工具"，外部代码看不到它。这是信息隐藏的一种方式。这是 [[11-closure-decorator/theory_11_closure_decorator#二、闭包：函数记住了它出生时的环境|闭包]] 的基础。</p>
+<p><strong>FastAPI 联系：</strong> 装饰器的 <code>new_function</code> 就是嵌套在 <code>begin_end</code> 内部的，装饰器的本质就是：
+1. 外层函数接收原函数
+2. 内层函数包装原函数（加额外逻辑）
+3. 返回内层函数替换原函数</p>
+<hr />
+<h2>七、装饰器——函数之上的函数</h2>
+<h3>老师代码</h3>
+<pre><code class="language-python">import time
+
+def begin_end(old):
+    &quot;&quot;&quot;给原函数加开始/结束/耗时统计&quot;&quot;&quot;
+    def new_function(*args, **kwargs):
+        print('开始执行~~~~')
+        time_begin = time.time()
+
+        result = old(*args, **kwargs)  # 调用原函数
+
+        time_end = time.time()
+        print('执行结束~~~~')
+        ms = (time_end - time_begin) * 1000
+        print(f&quot;{old.__name__} 耗时 {ms:.2f} 毫秒&quot;)
+        return result
+    return new_function
+
+# 用法一：手动装饰
+def sub(a, b):
+    time.sleep(1)
+    return a - b
+
+f2 = begin_end(sub)
+print(f2(10, 20))   # sub 被加了前后打印和耗时
+
+# 用法二：@语法糖
+@begin_end
+def add(a, b):
+    time.sleep(2)
+    return a + b
+
+result = add(3, 2)   # 等价于 add = begin_end(add)
+print(result)
+</code></pre>
+<h3>装饰器拆解</h3>
+<pre><code class="language-text">@begin_end
+def add(a, b): ...
+
+            ↓ 等价于
+
+add = begin_end(add)
+</code></pre>
+<p><code>@begin_end</code> 不是"声明"，是<strong>在函数定义后立即执行了一个函数调用</strong>。</p>
+<p><strong>执行过程：</strong></p>
+<pre><code class="language-text">add = begin_end(add)
+      → begin_end 接收 add 函数对象
+      → 内部定义 new_function（闭包，记住 old=add）
+      → 返回 new_function
+      → add 被替换为 new_function
+
+调用 add(3, 2) 时：
+      → 实际调用的是 new_function
+      → 打印 &quot;开始执行&quot;
+      → 调用原来的 add(3, 2)
+      → 打印 &quot;执行结束&quot;
+      → 返回结果
+</code></pre>
+<h3>FastAPI 映射</h3>
+<pre><code class="language-python">@app.get(&quot;/notes&quot;)
+def list_notes(): ...
+
+# 等价于
+# 1. app.get(&quot;/notes&quot;) 先执行，返回一个装饰器
+# 2. 装饰器接收 list_notes
+# 3. 把 list_notes 注册到路由表中
+# 4. list_notes 变成路由处理函数
+</code></pre>
+<p>区别只是老师写的 <code>begin_end</code> 接收<strong>函数</strong>，FastAPI 的 <code>app.get("/notes")</code> 先接收<strong>路径参数</strong>再返回装饰器。多了一层参数，本质一样。详细见 [[11-closure-decorator/theory_11_closure_decorator#四、带参数的装饰器：@app-get("/path")]]。</p>
+<blockquote>
+<p><strong>理解：</strong> 装饰器 = 高阶函数（参数是函数，返回值也是函数）。它是 Python 让<strong>函数作为第一类对象</strong>这个特性的集大成者。</p>
+</blockquote>
+<hr />
+<h2>八、递归函数</h2>
+<pre><code class="language-python"># 求 n!
+# 边界条件：n == 1 → 返回 1
+# 递归公式：n &gt; 1 → n * func(n-1)
+
+def func(num):
+    if num == 1:
+        return 1
+    else:
+        return num * func(num - 1)
+
+num = int(input(&quot;请输入一个整数：&quot;))
+result = func(num)
+print(f&quot;{num}! = %d&quot; % result)
+</code></pre>
+<p><strong>递归两要素：</strong>
+1. <strong>边界条件：</strong> 什么时候停止（<code>n == 1</code>）
+2. <strong>递归公式：</strong> 问题缩小一圈（<code>n → n-1</code>）</p>
+<p>执行 <code>func(4)</code> 的展开过程：</p>
+<pre><code class="language-text">func(4) → 4 * func(3)
+               → 3 * func(2)
+                     → 2 * func(1)
+                           → 1
+                     → 2 * 1 = 2
+               → 3 * 2 = 6
+         → 4 * 6 = 24
+</code></pre>
+<hr />
+<h2>九、匿名函数 lambda</h2>
+<pre><code class="language-python"># lambda 参数列表 : 表达式
+temp = lambda a, b: a + b
+print(type(temp))  # &lt;class 'function'&gt;
+print(temp(10, 20))  # 30
+
+# 相当于
+def temp(a, b):
+    return a + b
+print(temp(10, 20))  # 30
+</code></pre>
+<p><strong>lambda 限制：</strong> 只能写一行表达式，不能写语句。适合简单回调、排序 key、Pandas apply 等场景。你的 [[25-function-basics/theory_25_function_basics|25-function-basics]] 和 [[04-listcomp-class/theory_04_listcomp_lambda_class|04-listcomp-class]] 笔记中都用过它。</p>
+<hr />
+<h2>十、知识图谱——函数专题全景</h2>
+<pre><code class="language-text">                         ┌─ 函数定义 (def)
+                         │   └─ 函数是一等公民（可赋值、可传参）
+                         ├─ 返回值 (return)
+                         │   ├─ 单个值
+                         │   └─ 多个值 → 本质是元组
+          ┌─ 函数基础 ──┤
+          │             ├─ 参数传递
+          │             │   ├─ 位置参数
+          │             │   ├─ 关键字参数
+          │             │   ├─ 仅限位置参数 (/)
+          │             │   ├─ 默认参数
+          │             │   ├─ 打包 *args / **kwargs
+          │             │   ├─ 解包 *tuple / **dict
+          │             │   └─ 混合传递顺序规则
+          │             │
+          │             └─ 作用域
+          │                 ├─ 局部变量
+          │                 ├─ 全局变量（只读）
+          │                 ├─ global（声明修改全局）
+          │                 └─ nonlocal（修改外层函数的变量）
+Python    │
+  函数    ├─ 进阶机制 ──┤
+  专题    │             ├─ 嵌套函数（内层函数是外层私有工具）
+          │             ├─ 递归（边界 + 递推公式）
+          │             └─ 匿名函数 lambda（一行表达式）
+          │
+          ├─ 核心应用 ──┤ 装饰器
+          │             ├─ 本质：高阶函数（收函数→返回函数）
+          │             ├─ @语法糖：@foo ≡ func = foo(func)
+          │             ├─ *args, **kwargs 透明转发
+          │             └─ 闭包：内层函数记住外层变量
+          │
+          └─ FastAPI ──┤
+                        ├─ @app.get(&quot;/path&quot;) → 带参数的装饰器
+                        ├─ def create_note(...) → 路由函数
+                        ├─ Depends() → 框架帮你传参
+                        └─ return → 交给框架序列化
+</code></pre>
+<hr />
+<h2>十一、自检问题</h2>
+<p>学完之后，每道题能脱口而出才算真的懂了：</p>
+<p><strong>基础部分：</strong></p>
+<ol>
+<li><code>def add(a, b): return a + b</code> 定义后，<code>add</code> 本身是什么类型？<code>add(1, 2)</code> 是什么？</li>
+<li><code>return</code> 和 <code>print</code> 的根本区别是什么？</li>
+<li>为什么 Python 可以 <code>a, b = func()</code> 接收两个返回值？底层发生了什么？</li>
+<li><code>def fn(a, b, /, c)</code> 中 <code>/</code> 的作用是什么？</li>
+<li><code>*args</code> 得到什么类型？<code>**kwargs</code> 得到什么类型？</li>
+</ol>
+<p><strong>进阶部分：</strong></p>
+<ol>
+<li><code>test(*nums)</code> 是在做什么？<code>test(**nums)</code> 呢？用一句话说清楚。</li>
+<li>为什么函数内可以读全局变量，但不能直接改？</li>
+<li><code>global</code> 和 <code>nonlocal</code> 的区别一句话说清。</li>
+<li>装饰器 <code>@begin_end</code> 等价于哪一行普通代码？</li>
+</ol>
+<p><strong>FastAPI 连接部分：</strong></p>
+<ol>
+<li><code>@app.get("/notes")</code> 和普通装饰器有什么区别和联系？</li>
+<li>FastAPI 里 <code>return</code> 的值去了哪里，和老师代码有什么区别？</li>
+<li>为什么装饰器里要用 <code>*args, **kwargs</code> 来调用原函数？</li>
+<li>FastAPI 的路径参数 (<code>/{id}</code>)、查询参数 (<code>?skip=0</code>)、请求体 (<code>POST body</code>) 分别对应函数参数的哪种传递方式？</li>
+</ol>
+<hr />
+<h2>附录：最快消化路线（40 分钟版）</h2>
+<p>按顺序跑，每个文件跑完说一句"这个文件教会了我什么"：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>文件</th>
+<th>一句话目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5 分钟</td>
+<td><code>函数的定义和调用.py</code> + <code>函数的一个返回值.py</code></td>
+<td>看懂函数定义→调用→return 的完整链路</td>
+</tr>
+<tr>
+<td>5 分钟</td>
+<td><code>函数的多个返回值.py</code></td>
+<td>理解"多个返回值"本质是元组</td>
+</tr>
+<tr>
+<td>5 分钟</td>
+<td><code>位置参数、关键字参数、默认参数</code></td>
+<td>三种传参方式</td>
+</tr>
+<tr>
+<td>5 分钟</td>
+<td><code>打包1+2</code> + <code>解包1+2</code></td>
+<td>掌握 <code>*</code>/<code>**</code> 在定义和调用时的对称用法</td>
+</tr>
+<tr>
+<td>5 分钟</td>
+<td><code>嵌套函数</code> + <code>nonlocal</code></td>
+<td>理解外层/内层函数关系</td>
+</tr>
+<tr>
+<td>10 分钟</td>
+<td><code>装饰器.py</code></td>
+<td>最核心：理解装饰器本质 = 高阶函数</td>
+</tr>
+<tr>
+<td>5 分钟</td>
+<td>回头看 <code>notes-api</code> 的 <code>@app.post</code> 和 <code>def create_note</code></td>
+<td>验证你是否真懂了</td>
+</tr>
+</tbody>
+</table></body>
+</html>

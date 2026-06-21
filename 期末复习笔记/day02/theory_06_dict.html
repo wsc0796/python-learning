@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>theory_06_dict.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><hr />
+<p>aliases:
+  - 06-dict</p>
+<hr />
+<h1>06 — 字典 dict</h1>
+<blockquote>
+<p>相关笔记：<a href="../21-list-deep/theory_21_list_deep.md">列表深入操作</a> · <a href="../17-tuple-set/theory_17_tuple_set.md">元组与集合</a></p>
+</blockquote>
+<h2>一句话</h2>
+<p>字典是 <strong>key→value</strong> 的映射表，类似"查电话号码"：给你人名（key），找到号码（value）。</p>
+<pre><code class="language-python">phone = {&quot;张三&quot;: &quot;138xxxx&quot;, &quot;李四&quot;: &quot;139xxxx&quot;}
+print(phone[&quot;张三&quot;])   # 138xxxx
+</code></pre>
+<h2>1. 创建字典</h2>
+<pre><code class="language-python"># 方式1：花括号
+d1 = {&quot;name&quot;: &quot;小明&quot;, &quot;age&quot;: 18}
+
+# 方式2：dict() 构造
+d2 = dict(name=&quot;小明&quot;, age=18)     # 注意！key 不用加引号
+
+# 方式3：空字典
+d3 = {}
+d4 = dict()
+</code></pre>
+<h2>2. 增删改查</h2>
+<pre><code class="language-python">d = {}
+
+# 增 / 改（key不存在=增，key已存在=改）
+d[&quot;name&quot;] = &quot;小明&quot;        # {&quot;name&quot;: &quot;小明&quot;}
+d[&quot;age&quot;] = 18             # {&quot;name&quot;: &quot;小明&quot;, &quot;age&quot;: 18}
+d[&quot;name&quot;] = &quot;小红&quot;        # {&quot;name&quot;: &quot;小红&quot;, &quot;age&quot;: 18}  ← 改
+
+# 查（两种方式）
+print(d[&quot;name&quot;])           # &quot;小红&quot;    ← key存在就返回值
+# print(d[&quot;gender&quot;])       # KeyError! ← key不存在直接报错
+
+print(d.get(&quot;name&quot;))       # &quot;小红&quot;    ← 安全的查法
+print(d.get(&quot;gender&quot;))     # None      ← key不存在返回None，不报错
+print(d.get(&quot;gender&quot;, &quot;未知&quot;))  # &quot;未知&quot;  ← 可以指定默认值
+
+# 判断 key 是否存在
+print(&quot;name&quot; in d)          # True
+print(&quot;gender&quot; in d)        # False
+
+# 删除
+del d[&quot;age&quot;]                # {&quot;name&quot;: &quot;小红&quot;}
+# del d[&quot;gender&quot;]           # KeyError! 不存在会报错
+</code></pre>
+<h2>3. 遍历字典</h2>
+<pre><code class="language-python">d = {&quot;a&quot;: 1, &quot;b&quot;: 2, &quot;c&quot;: 3}
+
+# 遍历 key（默认）
+for k in d:
+    print(k, d[k])          # a 1 / b 2 / c 3
+
+# 遍历 key-value
+for k, v in d.items():
+    print(k, v)             # a 1 / b 2 / c 3
+
+# 只遍历 value
+for v in d.values():
+    print(v)                # 1 / 2 / 3
+</code></pre>
+<h2>4. 典型用法：分组（Group By）</h2>
+<p>这是 Hot100 最常用的模式：</p>
+<pre><code class="language-python">groups = {}                # key=某个标准, value=列表
+
+for word in [&quot;eat&quot;, &quot;tea&quot;, &quot;tan&quot;]:
+    key = &quot;aet&quot;            # 排序后的标准形式
+    if key not in groups:  # 第一次出现→初始化
+        groups[key] = []
+    groups[key].append(word)  # 加入分组
+
+print(groups)
+# {&quot;aet&quot;: [&quot;eat&quot;, &quot;tea&quot;], &quot;ant&quot;: [&quot;tan&quot;]}
+</code></pre>
+<h2>5. 注意事项</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>正确写法</th>
+<th>错误写法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>key 不存在时取值</td>
+<td><code>d.get(key)</code> 或 <code>if k in d:</code></td>
+<td><code>d[key]</code> 直接取</td>
+</tr>
+<tr>
+<td>保证 key 存在</td>
+<td><code>d.setdefault(key, [])</code></td>
+<td>手动 if 判断（也行）</td>
+</tr>
+<tr>
+<td>删除不存在的 key</td>
+<td><code>if k in d: del d[k]</code></td>
+<td><code>del d[k]</code> 直接删</td>
+</tr>
+</tbody>
+</table>
+<h2>Hot100 关联</h2>
+<p>遇到 dict 用法的题目：
+- <strong>第1题</strong> 两数之和 → 存差值，O(1) 查找
+- <strong>第49题</strong> 字母异位词分组 → 排序后分组
+- <strong>第128题</strong> 最长连续序列 → 集合判断存在</p>
+<h2>备考相关</h2>
+<ul>
+<li>[[EXAM_PREP/day02/00_今日任务]] — Day 2 字符串与组合数据类型</li>
+<li>[[EXAM_PREP/day07/00_今日任务]] — Day 7 学生管理系统综合题</li>
+</ul></body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>theory_25_function_basics.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><hr />
+<p>aliases:
+  - 25-function-basics</p>
+<hr />
+<h1>函数基础：定义 / 参数 / 返回值</h1>
+<blockquote>
+<p>前置：已掌握变量和条件语句
+目标：能独立写出带参数和返回值的函数
+用时：约 12 分钟</p>
+</blockquote>
+<p>相关笔记：<a href="./theory_25_recursion.md">递归函数</a> · <a href="../11-closure-decorator/theory_11_closure_decorator.md">闭包与装饰器</a> · <a href="../16-python-gaps/theory_16_python_gaps.md">作用域规则 · <em>args · </em>*kwargs</a> · <a href="../00-学习路线/课堂老师程序-函数专题对照.md">课堂老师函数程序对照</a></p>
+<hr />
+<h2>一、为什么要用函数</h2>
+<pre><code class="language-python"># 没有函数：代码重复
+print(&quot;欢迎张三登录&quot;)
+# ... 50 行逻辑 ...
+print(&quot;欢迎李四登录&quot;)
+# ... 同样的50行逻辑 ...
+print(&quot;欢迎王五登录&quot;)
+# ... 同样的50行逻辑 ...
+
+# 有函数：写一次，用无数次
+def welcome(name):
+    print(f&quot;欢迎{name}登录&quot;)
+    # ... 50 行逻辑 ...
+
+welcome(&quot;张三&quot;)
+welcome(&quot;李四&quot;)
+welcome(&quot;王五&quot;)
+</code></pre>
+<p><strong>函数的好处</strong>：消除重复、逻辑复用、方便修改。</p>
+<hr />
+<h2>二、定义和调用</h2>
+<pre><code class="language-python"># 定义
+def greet():
+    print(&quot;Hello!&quot;)
+
+# 调用
+greet()   # Hello!
+</code></pre>
+<p><strong>结构</strong>：</p>
+<pre><code>def 函数名(参数列表):
+    &quot;&quot;&quot;文档字符串（可选）&quot;&quot;&quot;
+    函数体
+    return 返回值（可选）
+</code></pre>
+<p>规则：
+- <code>def</code> 关键字开头
+- 函数名 + 圆括号 + 冒号
+- 函数体<strong>缩进</strong>
+- 参数和 <code>return</code> 都是可选的</p>
+<hr />
+<h2>三、参数</h2>
+<h3>位置参数（最常用）</h3>
+<pre><code class="language-python">def greet(name, greeting):
+    print(f&quot;{greeting}, {name}&quot;)
+
+greet(&quot;张三&quot;, &quot;你好&quot;)   # 你好, 张三
+greet(&quot;李四&quot;, &quot;Hello&quot;)  # Hello, 李四
+</code></pre>
+<p>参数的顺序很重要，按位置一一对应。</p>
+<h3>关键字参数</h3>
+<pre><code class="language-python"># 调用时指名道姓，顺序可以乱
+greet(greeting=&quot;你好&quot;, name=&quot;张三&quot;)   # 你好, 张三
+</code></pre>
+<h3>默认参数（缺省参数）</h3>
+<pre><code class="language-python">def greet(name, greeting=&quot;你好&quot;):
+    print(f&quot;{greeting}, {name}&quot;)
+
+greet(&quot;张三&quot;)            # 你好, 张三 — 使用默认值
+greet(&quot;李四&quot;, &quot;Hello&quot;)   # Hello, 李四 — 覆盖默认值
+</code></pre>
+<p><strong>默认参数陷阱</strong>：默认值只在定义时计算一次！</p>
+<pre><code class="language-python">def add_item(item, lst=[]):   # ❌ 坑！
+    lst.append(item)
+    return lst
+
+print(add_item(1))   # [1]
+print(add_item(2))   # [1, 2] — 不是预期的 [2]！
+
+# ✅ 正确做法：用 None 做默认值
+def add_item(item, lst=None):
+    if lst is None:
+        lst = []
+    lst.append(item)
+    return lst
+</code></pre>
+<hr />
+<h2>四、返回值</h2>
+<pre><code class="language-python"># 返回一个值
+def add(a, b):
+    return a + b
+
+result = add(3, 5)
+print(result)   # 8
+
+# 返回多个值（实际上返回元组）
+def get_min_max(nums):
+    return min(nums), max(nums)
+
+result = get_min_max([3, 1, 4, 1, 5])
+print(result)         # (1, 5)
+print(type(result))   # &lt;class 'tuple'&gt;
+
+# 解包接收
+min_val, max_val = get_min_max([3, 1, 4, 1, 5])
+print(f&quot;最小值: {min_val}, 最大值: {max_val}&quot;)
+
+# 不写 return → 返回 None
+def say_hello(name):
+    print(f&quot;你好，{name}&quot;)
+
+result = say_hello(&quot;张三&quot;)   # 你好，张三
+print(result)                # None
+</code></pre>
+<hr />
+<h2>五、文档字符串（docstring）</h2>
+<pre><code class="language-python">def calculate_bmi(weight, height):
+    &quot;&quot;&quot;计算BMI指数
+
+    参数:
+        weight: 体重（公斤）
+        height: 身高（米）
+
+    返回:
+        BMI 值（float）
+    &quot;&quot;&quot;
+    return weight / (height ** 2)
+
+# 查看文档
+help(calculate_bmi)   # 打印上面的 docstring
+print(calculate_bmi.__doc__)  # 直接获取文档文本
+</code></pre>
+<p><strong>团队协作必写 docstring</strong>，考试和面试也会加分。</p>
+<hr />
+<h2>六、类型提示（Type Hints）</h2>
+<h3>1. 基础语法</h3>
+<pre><code class="language-python"># 变量注解：变量名: 类型 = 值
+name: str = &quot;张三&quot;
+age: int = 20
+
+# 函数参数注解：参数名: 类型
+# 返回类型注解：-&gt; 类型
+def greet(name: str, age: int) -&gt; str:
+    return f&quot;{name} 今年 {age} 岁&quot;
+
+print(greet(&quot;张三&quot;, 20))   # 张三 今年 20 岁
+</code></pre>
+<p>写法：<strong>变量名在前，冒号，类型</strong>。<code>变量名: 类型</code> 读作"这个变量的类型是"。</p>
+<pre><code class="language-python">price: float = 99.8          # 浮点数
+is_active: bool = True       # 布尔值
+tags: list[str] = [&quot;a&quot;, &quot;b&quot;] # 字符串列表
+</code></pre>
+<h3>2. 联合类型：一个字段可能是多种类型</h3>
+<pre><code class="language-python"># str | None  = &quot;可以是字符串，也可以是 None（空）&quot;
+content: str | None = None
+
+# 等价的老写法：
+from typing import Optional
+content: Optional[str] = None
+</code></pre>
+<p><strong>"为什么类型写在变量名后面？"</strong></p>
+<blockquote>
+<p>Python 语法设计就是 <code>变量名: 类型</code>，不是 <code>类型 变量名</code>（后者是 Java/C 的写法）。</p>
+<p>Java: <code>String name = "张三"</code>
+Python: <code>name: str = "张三"</code></p>
+<p>读法一样：<strong>"name 这个变量，类型是 str，值是'张三'"</strong>。</p>
+</blockquote>
+<h3>3. 为什么类型注解很重要</h3>
+<pre><code class="language-python"># 没有类型注解：你猜这个函数需要什么参数？
+def process(data, config):
+    pass
+
+# 有类型注解：一眼就知道要什么
+def process(data: list[int], config: dict[str, str]) -&gt; bool:
+    pass
+</code></pre>
+<p>类型注解的好处：
+1. <strong>IDE 自动补全</strong>（输入 <code>data.</code> 会弹出列表方法）
+2. <strong>代码自文档化</strong>（不用看函数体就知道参数要求）
+3. <strong>Pydantic 用类型做校验</strong>（<code>content: str</code> → 自动校验传进来的是不是字符串）
+4. <strong>mypy 静态检查</strong>（在运行前发现类型不匹配）</p>
+<h3>4. 常见类型写法速查</h3>
+<pre><code class="language-python"># 基础类型
+name: str = &quot;abc&quot;
+count: int = 42
+ratio: float = 3.14
+done: bool = True
+
+# 容器类型（Python 3.9+ 可以直接用，不用从 typing 导入）
+items: list[int] = [1, 2, 3]
+mapping: dict[str, int] = {&quot;a&quot;: 1}
+unique: set[str] = {&quot;x&quot;, &quot;y&quot;}
+pair: tuple[str, int] = (&quot;abc&quot;, 42)
+
+# 联合类型（Python 3.10+）
+maybe: str | None = None
+value: int | str = 42  # 可以是整数，也可以是字符串
+
+# 在 Pydantic 中的实际应用
+class NoteCreate(BaseModel):
+    content: str                     # 必填，必须是字符串
+
+class NoteUpdate(BaseModel):
+    content: str | None = None       # 可选，可以是字符串或空
+</code></pre>
+<h3>5. 重要提醒</h3>
+<p>类型注解<strong>不会影响运行</strong>——即使你标注 <code>name: str</code> 然后赋值数字，Python 也不会报错。它是给<strong>人</strong>和<strong>工具</strong>看的约定。</p>
+<hr />
+<h2>七、函数是第一公民</h2>
+<pre><code class="language-python"># 函数可以赋值给变量
+def square(x):
+    return x ** 2
+
+f = square          # f 现在是 square 函数的别名
+print(f(5))         # 25
+
+# 函数可以作为参数传递
+def apply(func, value):
+    return func(value)
+
+result = apply(square, 4)
+print(result)       # 16
+</code></pre>
+<hr />
+<h2>总结</h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>写法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>定义</td>
+<td><code>def 函数名():</code></td>
+<td>def + 函数名 + 冒号</td>
+</tr>
+<tr>
+<td>参数</td>
+<td><code>def f(x, y):</code></td>
+<td>位置参数按顺序传</td>
+</tr>
+<tr>
+<td>关键字参数</td>
+<td><code>f(y=1, x=2)</code></td>
+<td>调用时指名</td>
+</tr>
+<tr>
+<td>默认参数</td>
+<td><code>def f(x=10):</code></td>
+<td>参数有默认值</td>
+</tr>
+<tr>
+<td>返回值</td>
+<td><code>return 值</code></td>
+<td>可返回多个（元组）</td>
+</tr>
+<tr>
+<td>无返回值</td>
+<td>不写 return</td>
+<td>返回 None</td>
+</tr>
+<tr>
+<td>文档</td>
+<td><code>"""说明"""</code></td>
+<td>函数体第一行</td>
+</tr>
+<tr>
+<td>类型提示</td>
+<td><code>def f(x: int) -&gt; str:</code></td>
+<td>代码更清晰</td>
+</tr>
+</tbody>
+</table>
+<h2>备考相关</h2>
+<ul>
+<li>[[EXAM_PREP/day01/00_今日任务]] — Day 1 基础语法（预热）</li>
+<li>[[EXAM_PREP/day03/00_今日任务]] — Day 3 函数专项</li>
+<li>[[EXAM_PREP/day06/00_今日任务]] — Day 6 老师课堂代码重放</li>
+<li>[[EXAM_PREP/day07/00_今日任务]] — Day 7 学生管理系统综合题</li>
+</ul></body>
+</html>

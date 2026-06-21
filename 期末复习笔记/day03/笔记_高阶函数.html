@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>笔记_高阶函数.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><h1>高阶函数：函数作为参数</h1>
+<hr />
+<p>[[theory_11_closure_decorator]] · [[课堂老师程序-函数专题对照]]</p>
+<h2>核心思想：把"做什么"和"什么时候做"分开</h2>
+<pre><code class="language-python"># 一个最简单的例子——为什么要把函数当参数传？
+def run(func, *args, **kwargs):
+    print(&quot;开始执行&quot;)
+    result = func(*args, **kwargs)
+    print(&quot;执行结束&quot;)
+    return result
+</code></pre>
+<p><code>run</code> 的价值不在于它能调用函数，而在于它能在调用函数前后做通用的事情。</p>
+<hr />
+<h2>一、对比：不用高阶函数 vs 用高阶函数</h2>
+<h3>❌ 不用高阶函数：每个函数都要改</h3>
+<pre><code class="language-python">def say_hello(name):
+    print(&quot;开始执行&quot;)              # 重复代码
+    result = f&quot;你好, {name}!&quot;
+    print(&quot;执行结束&quot;)              # 重复代码
+    return result
+
+def add(a, b):
+    print(&quot;开始执行&quot;)              # 重复代码
+    result = a + b
+    print(&quot;执行结束&quot;)              # 重复代码
+    return result
+
+def multiply(a, b):
+    print(&quot;开始执行&quot;)              # 重复代码
+    result = a * b
+    print(&quot;执行结束&quot;)              # 重复代码
+    return result
+</code></pre>
+<p><strong>问题：</strong> 100 个函数就要改 100 遍。</p>
+<h3>✅ 用高阶函数：通用逻辑只写一次</h3>
+<pre><code class="language-python">def run(func, *args, **kwargs):
+    print(&quot;开始执行&quot;)
+    result = func(*args, **kwargs)
+    print(&quot;执行结束&quot;)
+    return result
+
+# 原函数保持干净
+def say_hello(name):
+    return f&quot;你好, {name}!&quot;
+
+def add(a, b):
+    return a + b
+
+# 调用时传函数名
+run(say_hello, &quot;李四&quot;)
+run(add, 3, 4)
+</code></pre>
+<hr />
+<h2>二、和装饰器的关系</h2>
+<pre><code class="language-python"># run 函数（手动调用）
+def run(func, *args, **kwargs):
+    print(&quot;开始执行&quot;)
+    result = func(*args, **kwargs)
+    print(&quot;执行结束&quot;)
+    return result
+
+# 装饰器（自动调用）——本质一样
+def logger(func):
+    def wrapper(*args, **kwargs):
+        print(&quot;开始执行&quot;)
+        result = func(*args, **kwargs)
+        print(&quot;执行结束&quot;)
+        return result
+    return wrapper
+</code></pre>
+<p><strong>区别：</strong> <code>run</code> 是手动传函数调用，装饰器是 <code>@logger</code> 标记后自动包装。</p>
+<hr />
+<h2>三、三个实战价值</h2>
+<h3>1. 动态选择执行哪个函数（替代 if-elif 链）</h3>
+<pre><code class="language-python">def add(a, b): return a + b
+def sub(a, b): return a - b
+def mul(a, b): return a * b
+
+# 映射表代替 if-elif
+ops = {&quot;+&quot;: add, &quot;-&quot;: sub, &quot;*&quot;: mul}
+
+op = input(&quot;操作符: &quot;)
+a, b = int(input()), int(input())
+
+if op in ops:
+    print(ops[op](a, b))    # 动态选择函数
+</code></pre>
+<h3>2. 批量执行多个函数</h3>
+<pre><code class="language-python">def square(x): return x ** 2
+def cube(x): return x ** 3
+def double(x): return x * 2
+
+funcs = [square, cube, double]
+for f in funcs:
+    print(f(5))  # 25, 125, 10
+</code></pre>
+<h3>3. 在调用前后做通用操作（日志/计时/权限）</h3>
+<pre><code class="language-python">import time
+
+def timer(func, *args, **kwargs):
+    start = time.time()
+    result = func(*args, **kwargs)
+    elapsed = time.time() - start
+    print(f&quot;{func.__name__} 耗时：{elapsed:.4f}秒&quot;)
+    return result
+</code></pre>
+<hr />
+<h2>四、什么时候用</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>直接调用</th>
+<th>函数作为参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>只调一个特定函数</td>
+<td>✅ 推荐</td>
+<td>❌ 多余</td>
+</tr>
+<tr>
+<td>需要在调用前后做通用操作</td>
+<td>❌ 重复代码</td>
+<td>✅ 一次编写到处用</td>
+</tr>
+<tr>
+<td>需要动态选择执行哪个函数</td>
+<td>❌ if-elif 冗长</td>
+<td>✅ 映射表</td>
+</tr>
+<tr>
+<td>需要批量执行多个函数</td>
+<td>❌ 一个个写</td>
+<td>✅ 简洁</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>五、传入函数和返回函数是对称的</h2>
+<pre><code>函数作为参数传入  →  你将控制权交给别人（回调）
+                        ↕
+函数作为返回值返回 →  你将能力包装后发出（装饰器/工厂）
+</code></pre>
+<p>两者合在一起就是 Python 装饰器的完整实现。</p></body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>theory_25_recursion.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><hr />
+<p>aliases:
+  - recursion
+  - 递归函数</p>
+<hr />
+<h1>递归函数：函数自己调用自己</h1>
+<blockquote>
+<p>前置：已掌握函数定义、参数、返回值、if 判断
+目标：能写出带终止条件的递归函数，理解实验题 <code>f(n)</code> 求 <code>1~n</code> 之和
+用时：约 10 分钟</p>
+</blockquote>
+<p>相关笔记：<a href="./theory_25_function_basics.md">函数基础</a> · <a href="../23-if-conditionals/theory_23_if_conditionals.md">条件判断</a> · <a href="../18-loops-deep/theory_18_loops_deep.md">循环深入</a></p>
+<hr />
+<h2>一、递归是什么</h2>
+<p>递归就是：<strong>一个函数在函数体内部调用自己</strong>。</p>
+<pre><code class="language-python">def count_down(n):
+    if n == 0:
+        print(&quot;结束&quot;)
+        return
+
+    print(n)
+    count_down(n - 1)
+
+
+count_down(3)
+</code></pre>
+<p>执行过程：</p>
+<pre><code class="language-text">count_down(3)
+  print(3)
+  count_down(2)
+    print(2)
+    count_down(1)
+      print(1)
+      count_down(0)
+        print(&quot;结束&quot;)
+</code></pre>
+<p>记忆句：<strong>递归 = 把大问题拆成一个小一点的同类问题。</strong></p>
+<hr />
+<h2>二、递归必须有两个部分</h2>
+<h3>1. 终止条件</h3>
+<p>告诉函数：什么时候别再调用自己了。</p>
+<pre><code class="language-python">if n == 1:
+    return 1
+</code></pre>
+<p>没有终止条件，函数会一直调用自己，最后报错：</p>
+<pre><code class="language-text">RecursionError: maximum recursion depth exceeded
+</code></pre>
+<h3>2. 递归关系</h3>
+<p>告诉函数：当前问题如何变成更小的问题。</p>
+<pre><code class="language-python">return n + f(n - 1)
+</code></pre>
+<p>这句话的意思是：</p>
+<pre><code class="language-text">1~n 的和 = n + 1~(n-1) 的和
+</code></pre>
+<hr />
+<h2>三、实验题：递归求 1~n 之和</h2>
+<p>题目：编写函数 <code>f(n)</code>，输入 <code>n</code>，求 <code>1~n</code> 之和，要求使用递归。</p>
+<pre><code class="language-python">def f(n):
+    if n == 1:
+        return 1
+
+    return n + f(n - 1)
+
+
+num = int(input(&quot;请输入 n：&quot;))
+print(f&quot;1~{num} 的和是：{f(num)}&quot;)
+</code></pre>
+<p>以 <code>f(5)</code> 为例：</p>
+<pre><code class="language-text">f(5)
+= 5 + f(4)
+= 5 + 4 + f(3)
+= 5 + 4 + 3 + f(2)
+= 5 + 4 + 3 + 2 + f(1)
+= 5 + 4 + 3 + 2 + 1
+= 15
+</code></pre>
+<p><strong>关键点</strong>：每次调用都让 <code>n</code> 变小，直到 <code>n == 1</code>。</p>
+<hr />
+<h2>四、递归和循环的对比</h2>
+<p>递归写法：</p>
+<pre><code class="language-python">def f(n):
+    if n == 1:
+        return 1
+    return n + f(n - 1)
+</code></pre>
+<p>循环写法：</p>
+<pre><code class="language-python">def f_loop(n):
+    total = 0
+
+    for i in range(1, n + 1):
+        total += i
+
+    return total
+</code></pre>
+<p>对比：</p>
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>递归</td>
+<td>思路像数学公式，适合树、分治、阶乘</td>
+<td>层数太深会报错，初学容易忘终止条件</td>
+</tr>
+<tr>
+<td>循环</td>
+<td>更直观、更省内存</td>
+<td>有些复杂结构写起来不如递归自然</td>
+</tr>
+</tbody>
+</table>
+<p>考试里如果要求“使用递归”，就不能用 <code>for</code> 或 <code>while</code> 直接累加。</p>
+<hr />
+<h2>五、经典例子：阶乘</h2>
+<p>阶乘公式：</p>
+<pre><code class="language-text">n! = n * (n-1) * (n-2) * ... * 1
+</code></pre>
+<p>递归关系：</p>
+<pre><code class="language-text">n! = n * (n-1)!
+</code></pre>
+<p>代码：</p>
+<pre><code class="language-python">def factorial(n):
+    if n == 1:
+        return 1
+
+    return n * factorial(n - 1)
+
+
+print(factorial(5))  # 120
+</code></pre>
+<p>展开过程：</p>
+<pre><code class="language-text">factorial(5)
+= 5 * factorial(4)
+= 5 * 4 * factorial(3)
+= 5 * 4 * 3 * factorial(2)
+= 5 * 4 * 3 * 2 * factorial(1)
+= 5 * 4 * 3 * 2 * 1
+= 120
+</code></pre>
+<hr />
+<h2>六、递归常见错误</h2>
+<h3>错误 1：没有终止条件</h3>
+<pre><code class="language-python">def f(n):
+    return n + f(n - 1)
+</code></pre>
+<p>问题：函数永远不知道什么时候停。</p>
+<h3>错误 2：参数没有变小</h3>
+<pre><code class="language-python">def f(n):
+    if n == 1:
+        return 1
+    return n + f(n)
+</code></pre>
+<p>问题：每次还是 <code>f(n)</code>，没有靠近终止条件。</p>
+<h3>错误 3：终止条件写错</h3>
+<pre><code class="language-python">def f(n):
+    if n == 0:
+        return 0
+    return n + f(n - 1)
+</code></pre>
+<p>这段代码本身可以算 <code>1~n</code>，但如果题目要求 <code>n</code> 是正整数，通常更自然写成：</p>
+<pre><code class="language-python">if n == 1:
+    return 1
+</code></pre>
+<p>如果要兼容 <code>n == 0</code>，可以写：</p>
+<pre><code class="language-python">def f(n):
+    if n &lt;= 0:
+        return 0
+    return n + f(n - 1)
+</code></pre>
+<hr />
+<h2>七、怎么判断一道题能不能用递归</h2>
+<p>看它能不能拆成：</p>
+<pre><code class="language-text">当前问题 = 当前一步 + 更小的同类问题
+</code></pre>
+<p>适合递归的题：</p>
+<ul>
+<li><code>1~n</code> 求和：<code>f(n) = n + f(n-1)</code></li>
+<li>阶乘：<code>factorial(n) = n * factorial(n-1)</code></li>
+<li>倒计时：<code>count_down(n)</code> 调 <code>count_down(n-1)</code></li>
+<li>树结构、目录遍历、分治算法</li>
+</ul>
+<p>不太适合初学者用递归硬写的题：</p>
+<ul>
+<li>简单列表遍历</li>
+<li>普通菜单循环</li>
+<li>学生管理系统这种交互式程序</li>
+</ul>
+<hr />
+<h2>八、考试速记</h2>
+<p>递归函数三步：</p>
+<pre><code class="language-text">1. 写函数名和参数
+2. 写终止条件
+3. 写递归调用，让参数向终止条件靠近
+</code></pre>
+<p>模板：</p>
+<pre><code class="language-python">def 函数名(n):
+    if 终止条件:
+        return 最简单情况的答案
+
+    return 当前一步 + 函数名(更小的问题)
+</code></pre>
+<p>实验 7 的递归求和模板：</p>
+<pre><code class="language-python">def f(n):
+    if n == 1:
+        return 1
+    return n + f(n - 1)
+</code></pre>
+<p>一句话复述：</p>
+<blockquote>
+<p>递归就是函数自己调用自己，但必须有终止条件，并且每次调用都要让问题变小。</p>
+</blockquote></body>
+</html>

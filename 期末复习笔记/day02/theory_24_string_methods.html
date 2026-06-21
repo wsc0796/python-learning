@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>theory_24_string_methods.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><hr />
+<p>aliases:
+  - 24-string-methods</p>
+<hr />
+<h1>字符串方法：查找 / 替换 / 拆分 / 合并</h1>
+<blockquote>
+<p>前置：已掌握字符串定义和切片
+目标：掌握 Python 最常用的 12 个字符串方法
+用时：约 12 分钟</p>
+<p>相关笔记：<a href="../02-slice/theory_02_slice.md">切片操作</a> · <a href="../21-list-deep/theory_21_list_deep.md">列表深入操作</a></p>
+</blockquote>
+<hr />
+<h2>概览：字符串方法分类速查</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>查找</strong></td>
+<td><code>find()</code> / <code>index()</code></td>
+<td>找子串位置</td>
+</tr>
+<tr>
+<td><strong>判断</strong></td>
+<td><code>startswith()</code> / <code>endswith()</code></td>
+<td>判断开头/结尾</td>
+</tr>
+<tr>
+<td><strong>判断</strong></td>
+<td><code>isalpha()</code> / <code>isdigit()</code> / <code>isalnum()</code></td>
+<td>判断字符类型</td>
+</tr>
+<tr>
+<td><strong>修改</strong></td>
+<td><code>replace()</code></td>
+<td>替换</td>
+</tr>
+<tr>
+<td><strong>修改</strong></td>
+<td><code>upper()</code> / <code>lower()</code> / <code>title()</code> / <code>capitalize()</code> / <code>swapcase()</code></td>
+<td>大小写转换</td>
+</tr>
+<tr>
+<td><strong>修改</strong></td>
+<td><code>strip()</code> / <code>lstrip()</code> / <code>rstrip()</code></td>
+<td>去除两端 / 左端 / 右端空白</td>
+</tr>
+<tr>
+<td><strong>修改</strong></td>
+<td><code>center()</code> / <code>ljust()</code> / <code>rjust()</code></td>
+<td>对齐与填充</td>
+</tr>
+<tr>
+<td><strong>拆分合并</strong></td>
+<td><code>split()</code> / <code>join()</code></td>
+<td>拆分成列表 / 合并成字符串</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>一、查找类</h2>
+<h3>find() vs index()</h3>
+<pre><code class="language-python">text = &quot;Hello, welcome to Python world&quot;
+
+# find：找到返回起始索引，找不到返回 -1
+print(text.find(&quot;welcome&quot;))    # 7（w 的位置）
+print(text.find(&quot;Java&quot;))       # -1（没找到）
+
+# index：找到返回起始索引，找不到抛异常
+print(text.index(&quot;welcome&quot;))   # 7
+# print(text.index(&quot;Java&quot;))    # ❌ ValueError!
+</code></pre>
+<p><strong>用 <code>find</code> 还是 <code>index</code>？</strong> —— 不确定是否存在时用 <code>find</code>，确定一定存在时用 <code>index</code>。</p>
+<h3>startswith() / endswith()</h3>
+<pre><code class="language-python">filename = &quot;report_2024.pdf&quot;
+
+print(filename.startswith(&quot;report&quot;))  # True
+print(filename.endswith(&quot;.pdf&quot;))      # True
+print(filename.endswith(&quot;.txt&quot;))      # False
+
+# 实用：批量处理文件
+files = [&quot;data_01.csv&quot;, &quot;data_02.csv&quot;, &quot;photo.png&quot;]
+csv_files = [f for f in files if f.endswith(&quot;.csv&quot;)]
+print(csv_files)  # ['data_01.csv', 'data_02.csv']
+</code></pre>
+<h3>isalpha() / isdigit() / isalnum()</h3>
+<pre><code class="language-python"># isalpha()：是否全是字母
+print(&quot;abc&quot;.isalpha())      # True
+print(&quot;abc123&quot;.isalpha())   # False（有数字）
+
+# isdigit()：是否全是数字
+print(&quot;123&quot;.isdigit())      # True
+print(&quot;abc&quot;.isdigit())      # False
+
+# isalnum()：是否只有字母和数字（没有特殊符号）
+print(&quot;abc123&quot;.isalnum())   # True
+print(&quot;abc 123&quot;.isalnum())  # False（有空格）
+print(&quot;hello!&quot;.isalnum())   # False（有感叹号）
+</code></pre>
+<p><strong>实用场景</strong>：校验用户输入</p>
+<pre><code class="language-python">username = &quot;张三123&quot;
+if username.isalnum():
+    print(&quot;用户名合法&quot;)
+else:
+    print(&quot;只能包含字母和数字&quot;)
+
+age = input(&quot;请输入年龄：&quot;)
+if age.isdigit():
+    print(f&quot;年龄：{int(age)}&quot;)
+else:
+    print(&quot;请输入数字&quot;)
+</code></pre>
+<hr />
+<h2>二、修改类</h2>
+<h3>replace() — 替换</h3>
+<pre><code class="language-python">text = &quot;I like Python, Python is great&quot;
+
+# 全部替换
+print(text.replace(&quot;Python&quot;, &quot;Java&quot;))
+# &quot;I like Java, Java is great&quot;
+
+# 指定替换次数
+print(text.replace(&quot;Python&quot;, &quot;Java&quot;, 1))
+# &quot;I like Java, Python is great&quot;
+
+# 删除字符（替换成空字符串）
+print(text.replace(&quot; &quot;, &quot;&quot;))
+# &quot;IlikePython,Pythonisgreat&quot;
+</code></pre>
+<h3>upper() / lower() — 大小写转换</h3>
+<pre><code class="language-python">text = &quot;Hello World&quot;
+
+print(text.upper())   # &quot;HELLO WORLD&quot;
+print(text.lower())   # &quot;hello world&quot;
+
+# 实用：不区分大小写的比较
+input_color = &quot;Red&quot;
+if input_color.lower() == &quot;red&quot;:
+    print(&quot;匹配&quot;)
+</code></pre>
+<h3>capitalize() / swapcase() / title() — 其他大小写方法</h3>
+<pre><code class="language-python">text = &quot;hello WORLD&quot;
+
+# capitalize：句首大写，其余全小写
+print(text.capitalize())  # &quot;Hello world&quot;
+
+# title：每个单词首字母大写
+print(text.title())       # &quot;Hello World&quot;
+
+# swapcase：大写↔小写互换（你文件实验里用过的）
+print(text.swapcase())    # &quot;HELLO world&quot;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th><code>"hello WORLD"</code> 的结果</th>
+<th>规则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>upper()</code></td>
+<td><code>"HELLO WORLD"</code></td>
+<td>全大写</td>
+</tr>
+<tr>
+<td><code>lower()</code></td>
+<td><code>"hello world"</code></td>
+<td>全小写</td>
+</tr>
+<tr>
+<td><code>capitalize()</code></td>
+<td><code>"Hello world"</code></td>
+<td>首字母大写，其余全小写</td>
+</tr>
+<tr>
+<td><code>title()</code></td>
+<td><code>"Hello World"</code></td>
+<td>每个单词首字母大写</td>
+</tr>
+<tr>
+<td><code>swapcase()</code></td>
+<td><code>"HELLO world"</code></td>
+<td>大小写翻转</td>
+</tr>
+</tbody>
+</table>
+<h3>strip() — 去除两端空白</h3>
+<pre><code class="language-python">user_input = &quot;   hello   &quot;
+print(repr(user_input.strip()))     # 'hello' — 去两端空格
+print(repr(user_input.lstrip()))    # 'hello   ' — 去左端
+print(repr(user_input.rstrip()))    # '   hello' — 去右端
+
+# 实用：清理用户输入
+name = input(&quot;请输入姓名：&quot;).strip()
+if name:  # 输入全是空格 → 空字符串 → False
+    print(f&quot;你好，{name}&quot;)
+else:
+    print(&quot;姓名不能为空&quot;)
+</code></pre>
+<hr />
+<h2>三、拆分与合并</h2>
+<h3>split() / join() — 最常用的一对</h3>
+<pre><code class="language-python"># split：字符串 → 列表
+csv_line = &quot;张三,25,南昌&quot;
+fields = csv_line.split(&quot;,&quot;)
+print(fields)   # ['张三', '25', '南昌']
+
+# 默认按空白字符拆分
+words = &quot;hello   world  python&quot;.split()
+print(words)    # ['hello', 'world', 'python']
+
+# 限制拆分次数
+data = &quot;a,b,c,d,e&quot;
+print(data.split(&quot;,&quot;, 2))   # ['a', 'b', 'c,d,e']
+
+# join：列表 → 字符串（split 的反操作）
+fields = ['张三', '25', '南昌']
+csv_line = &quot;,&quot;.join(fields)
+print(csv_line)   # &quot;张三,25,南昌&quot;
+
+# join 是字符串的方法，不是列表的方法
+# 写法是 &quot;分隔符&quot;.join(列表)，不是 列表.join(&quot;分隔符&quot;)
+
+words = [&quot;Python&quot;, &quot;is&quot;, &quot;awesome&quot;]
+sentence = &quot; &quot;.join(words)
+print(sentence)   # &quot;Python is awesome&quot;
+</code></pre>
+<p><strong>重要</strong>：<code>join()</code> 的调用对象是<strong>分隔符字符串</strong>，参数是<strong>列表</strong>：</p>
+<pre><code class="language-python">&quot;,&quot;.join([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])   # &quot;a,b,c&quot;
+&quot; &quot;.join([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])   # &quot;a b c&quot;
+&quot;&quot;.join([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])    # &quot;abc&quot;
+</code></pre>
+<h3>综合示例：CSV 数据解析</h3>
+<pre><code class="language-python"># 模拟从文件读到的数据
+raw_data = &quot;  张三, 25, 南昌  \n 李四, 30, 北京  &quot;
+
+# 清洗流程
+cleaned = raw_data.strip()                    # 去两端空白
+lines = cleaned.split(&quot;\n&quot;)                   # 按换行拆成行
+for line in lines:
+    fields = [f.strip() for f in line.split(&quot;,&quot;)]  # 每行按逗号拆分+去空格
+    print(fields)   # ['张三', '25', '南昌']  ['李四', '30', '北京']
+</code></pre>
+<hr />
+<h2>四、其他实用方法</h2>
+<pre><code class="language-python"># count：统计子串出现次数
+text = &quot;apple banana apple cherry apple&quot;
+print(text.count(&quot;apple&quot;))      # 3
+
+# len：获取字符串长度（不是方法，是函数）
+print(len(&quot;Hello&quot;))             # 5
+
+# in：判断是否包含（最常用的方式）
+print(&quot;apple&quot; in text)          # True
+print(&quot;orange&quot; in text)         # False
+</code></pre>
+<p><code>in</code> 比 <code>find()</code> 更直观，<strong>判断是否存在时优先用 <code>in</code></strong>。</p>
+<hr />
+<h2>实战案例（来自你微信里的 Python 学习文件）</h2>
+<h3>案例1：字符串表示（引号与转义）→ <code>字符串表示.py</code></h3>
+<pre><code class="language-python">print('使用单引号定义的字符串')
+print(&quot;使用双引号定义的字符串&quot;)
+print(&quot;&quot;&quot;使用三引号定义的
+                多行字符串&quot;&quot;&quot;)
+
+# 字符串里包含引号的处理
+print(&quot;let's learn Python&quot;)                     # 外双内单
+print('let\'s learn Python')                     # 反斜杠转义
+print(&quot;How do you spell the word \&quot;Python\&quot;?&quot;)   # 双引号转义
+</code></pre>
+<p><strong>要点</strong>：单引号 <code>'</code>、双引号 <code>"</code>、三引号 <code>"""</code> 都可以定义字符串。引号嵌套时用 <code>\"</code> 转义。</p>
+<hr />
+<h3>案例2：大小写转换 → <code>字符串大小写转换.py</code></h3>
+<pre><code class="language-python">old_string = 'hello woRld'
+print(old_string.upper())       # HELLO WORLD — 全大写
+print(old_string.lower())       # hello world — 全小写
+print(old_string.capitalize())  # Hello world — 首字母大写
+print(old_string.title())       # Hello World — 每个单词首字母大写
+</code></pre>
+<hr />
+<h3>案例3：查找与替换 → <code>字符串的查找与替换.py</code></h3>
+<pre><code class="language-python"># find() 查找子串位置
+string = &quot;Pythontn&quot;
+print(string.find('t'))     # 2 — 从0开始找't'首次出现
+print(string.find('t', 5))  # 6 — 从索引5开始找
+
+# replace() 替换
+string = &quot;All things Are difficult before they Are easy Are good&quot;
+print(string.replace(&quot;Are&quot;, &quot;are&quot;))       # 全部替换
+print(string.replace(&quot;Are&quot;, &quot;are&quot;, 2))    # 只替换前2次
+</code></pre>
+<hr />
+<h3>案例4：分割与拼接 → <code>字符串的分割与拼接.py</code></h3>
+<pre><code class="language-python"># split() 分割
+string = &quot;The more efforts you make,the more fortune you get&quot;
+print(string.split())            # 默认按空格分割
+print(string.split('m'))         # 按'm'分割
+print(string.split('e', 2))      # 按'e'分割，只分2次
+
+# join() 拼接 + 加号拼接
+print('*'.join('Python'))        # P*y*t*h*o*n
+print('Py' + 'thon')             # Python — +号拼接
+</code></pre>
+<hr />
+<h3>案例5：字符串对齐 → <code>字符串对齐.py</code></h3>
+<pre><code class="language-python">sentence = 'hello world'
+print(sentence.center(13, '-'))   # -hello world-  居中，-补齐
+print(sentence.ljust(13, '*'))    # hello world**  左对齐，*补齐
+print(sentence.rjust(13, '%'))    # %%hello world  右对齐，%补齐
+</code></pre>
+<hr />
+<h3>案例6：删除指定字符 → <code>删除字符串的指定字符.py</code></h3>
+<pre><code class="language-python">old = '  Life is short,Use Python!    '
+print(f&quot;strip:{old.strip()}显示&quot;)    # 去两端空格
+print(f&quot;lstrip:{old.lstrip()}显示&quot;)  # 去左端空格
+print(f&quot;rstrip:{old.rstrip()}显示&quot;)  # 去右端空格
+</code></pre>
+<hr />
+<h2>总结速记</h2>
+<pre><code>查找用 find（找不到不报错），判断存在用 in
+去空格用 strip，大小写用 lower/upper
+拆分用 split，合并用 join（分隔符.join(列表)）
+判断类型用 isdigit/isalpha/isalnum
+
+实战场景：
+  引号与转义  → 单/双/三引号、\' \&quot;
+  大小写      → upper() / lower() / capitalize() / title()
+  查找替换    → find() / replace()
+  分割拼接    → split() / join() / +
+  对齐        → center() / ljust() / rjust()
+  去空格      → strip() / lstrip() / rstrip()
+</code></pre>
+<h2>备考相关</h2>
+<ul>
+<li>[[EXAM_PREP/day02/00_今日任务]] — Day 2 字符串与组合数据类型</li>
+</ul></body>
+</html>

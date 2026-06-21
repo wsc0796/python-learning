@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>theory_01_fstring.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><hr />
+<p>aliases:
+  - 01-fstring</p>
+<hr />
+<h1>theory_01：f-string — 把变量塞进字符串</h1>
+<p>读完约 3 分钟。</p>
+<blockquote>
+<p>相关笔记：<a href="../19-type-conversion/theory_19_type_conversion.md">类型转换</a> · <a href="../24-string-methods/theory_24_string_methods.md">字符串方法</a></p>
+</blockquote>
+<hr />
+<h2>你已经会的两种方式</h2>
+<pre><code class="language-python">name = &quot;张三&quot;
+age = 20
+
+# 方式1：逗号（有空格的毛病）
+print(&quot;我叫&quot;, name, &quot;，今年&quot;, age, &quot;岁&quot;)
+
+# 方式2：加号（数字要手动转str的毛病）
+print(&quot;我叫&quot; + name + &quot;，今年&quot; + str(age) + &quot;岁&quot;)
+</code></pre>
+<h2>f-string：第三种方式</h2>
+<pre><code class="language-python">print(f&quot;我叫{name}，今年{age}岁&quot;)
+</code></pre>
+<p><strong>规则就两条：</strong>
+1. 引号前写 <code>f</code>
+2. 变量名放 <code>{}</code> 里</p>
+<p>Python 自动去 <code>{}</code> 里取值，自动把数字转成字符串。</p>
+<h2>{} 里可以是任意计算</h2>
+<pre><code class="language-python">a = 10
+b = 3
+
+print(f&quot;{a} + {b} = {a + b}&quot;)       # 10 + 3 = 13
+print(f&quot;{a} 的平方是 {a ** 2}&quot;)      # 10 的平方是 100
+</code></pre>
+<h2>浮点数精度问题</h2>
+<pre><code class="language-python">price = 29.9
+count = 3
+print(price * count)                  # 89.69999999999999 ← 不是 89.7！
+
+# 修法：:.1f 保留1位小数，自动四舍五入
+print(f&quot;总价{price * count:.1f}元&quot;)  # 总价89.7元
+print(f&quot;总价{price * count:.2f}元&quot;)  # 总价89.70元（保留2位）
+</code></pre>
+<p><strong>金融/价格相关永远加 <code>:.2f</code>。</strong></p>
+<h3>为什么会有精度问题（IEEE 754）</h3>
+<p>计算机用二进制存小数。十进制里能精确表示的 <code>0.1</code>，在二进制里是 <code>0.0001100110011...</code> 无限循环，必然被截断。</p>
+<pre><code class="language-python">0.1 + 0.2    # 0.30000000000000004 ← 不是 0.3
+</code></pre>
+<p>所以 <code>29.9 * 3 = 89.699...</code> 不是 Python 的 bug，所有语言都这样。</p>
+<h3>需要精确计算时用 Decimal</h3>
+<pre><code class="language-python">from decimal import Decimal
+result = Decimal(&quot;29.9&quot;) * 3    # 89.7，精确
+</code></pre>
+<p><strong>注意：</strong> 必须用字符串 <code>"29.9"</code> 传入 Decimal。用 <code>Decimal(29.9)</code> 还是会有精度问题——因为 <code>29.9</code> 传进去之前就已经被 Python 截断了。</p>
+<h2>进阶规则：f-string 两条核心规则</h2>
+<p><strong>规则一：<code>{}</code> 里放的是表达式，不是语句</strong></p>
+<pre><code class="language-python">name = &quot;小明&quot;
+print(f&quot;{name.upper()}&quot;)      # ✅ 表达式，可以
+# print(f&quot;{if name: ...}&quot;)    # ❌ 语句，不行
+</code></pre>
+<p><strong>规则二：<code>!</code> 控制转换，<code>:</code> 控制格式</strong></p>
+<pre><code class="language-python">x = 3.14159
+print(f&quot;{x!r}&quot;)      # !r → repr()，输出 '3.14159'（给开发者看的）
+print(f&quot;{x:.2f}&quot;)    # :.2f → 保留两位小数，输出 3.14（给人看的）
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>作用</th>
+<th>等价写法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>!r</code></td>
+<td>repr() 表示（调试用）</td>
+<td><code>f"{repr(x)}"</code></td>
+</tr>
+<tr>
+<td><code>!s</code></td>
+<td>str() 表示（默认，可省略）</td>
+<td><code>f"{str(x)}"</code></td>
+</tr>
+<tr>
+<td><code>!a</code></td>
+<td>ascii() 表示（转义非ASCII字符）</td>
+<td><code>f"{ascii(x)}"</code></td>
+</tr>
+<tr>
+<td><code>:.2f</code></td>
+<td>格式说明（<code>:</code> 开头，控制精度/对齐/进制）</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>!</code> 和 <code>:</code> 可以同时用：<code>f"{x!r:.10}"</code> — 先 repr 再截断到10字符。</p>
+</blockquote>
+<h2>常见坑</h2>
+<pre><code class="language-python"># 坑1：忘写 f
+print(&quot;Hello, {name}!&quot;)    # 输出 Hello, {name}! —— 没替换！
+
+# 坑2：f-string 的 {} 和切片的 [] 不是一回事
+names = [&quot;张三&quot;, &quot;李四&quot;]
+print(f&quot;{names[0]}&quot;)       # OK：f-string {}里用索引
+# print(f&quot;{names[:]}&quot;)     # 不报错但输出 ['张三','李四']，不是你要的格式
+</code></pre>
+<h2>引号搭配</h2>
+<pre><code class="language-python">print(f&quot;他说：{'你好'}&quot;)     # OK：外面双引号，{}里面单引号
+# print(f&quot;他说：{&quot;你好&quot;}&quot;)   # 报错！内外同种引号冲突
+</code></pre>
+<h2>enumerate：循环带编号</h2>
+<pre><code class="language-python">names = [&quot;张三&quot;, &quot;李四&quot;, &quot;王五&quot;, &quot;赵六&quot;]
+
+for i, name in enumerate(names, 1):   # 第二个参数1 = 从1开始编号
+    print(f&quot;第{i}位：{name}&quot;)
+# 第1位：张三  第2位：李四  第3位：王五  第4位：赵六
+</code></pre>
+<hr />
+<h2>实战：三种格式化方式（你微信收到的学习文件）</h2>
+<h3>1. % 格式化 → <code>格式化字符串%.py</code></h3>
+<pre><code class="language-python">name = '张三'
+age = 27
+ave = 88.856
+address = '北京昌平区'
+print(&quot;姓名：%s&quot; % name)
+print(&quot;年龄：%6d岁\n家庭住址：%s\n平均成绩%.2f&quot; % (age, address, ave))
+</code></pre>
+<p><strong>要点</strong>：<code>%s</code>=字符串, <code>%d</code>=整数, <code>%f</code>=浮点数, <code>%.2f</code>=保留2位小数, <code>%6d</code>=宽度6右对齐。</p>
+<hr />
+<h3>2. format() 方法 → <code>格式化字符串format方法.py</code></h3>
+<pre><code class="language-python">name = '张三'
+age = 27
+address = '北京昌平区'
+
+print(&quot;姓名：{}&quot;.format(name))                    # 默认
+print(&quot;年龄：{}岁\n家庭住址：{}&quot;.format(age, address)) # 顺序
+print(&quot;姓名：{1}\n年龄：{0}&quot;.format(age, name))    # 编号
+print(&quot;姓名：{name1}\n年龄：{age1}&quot;.format(name1=name, age1=age))  # 名称
+
+point, total = 19, 22
+print('所占百分比：{:.2%}'.format(point/total))   # 百分比：86.36%
+</code></pre>
+<p><strong>要点</strong>：<code>{}</code> 是占位符，支持顺序/编号/名称三种定位方式，<code>:.2%</code> 自动转百分比。</p>
+<hr />
+<h3>3. f-string → <code>格式化字符串f-string.py</code></h3>
+<pre><code class="language-python">age = 20
+ave_score = 88.8534
+gender = '男'
+print(f&quot;年龄：{age},性别：{gender},平均成绩：{ave_score:.2f}&quot;)
+</code></pre>
+<p><strong>要点</strong>：最简洁的写法，<code>f"..."</code> 里用 <code>{变量名}</code> 直接取值。</p>
+<hr />
+<h3>三种方式对比</h3>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>语法</th>
+<th>推荐度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>%</code> 格式化</td>
+<td><code>"%s %d" % (val1, val2)</code></td>
+<td>旧式，看得懂就行</td>
+</tr>
+<tr>
+<td><code>format()</code></td>
+<td><code>"{} {}".format(val1, val2)</code></td>
+<td>中间代，了解即可</td>
+</tr>
+<tr>
+<td><strong>f-string</strong></td>
+<td><code>f"{val1} {val2}"</code></td>
+<td><strong>主力，推荐</strong></td>
+</tr>
+</tbody>
+</table></body>
+</html>

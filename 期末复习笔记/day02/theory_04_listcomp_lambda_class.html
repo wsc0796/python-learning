@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>theory_04_listcomp_lambda_class.md</title><style>
+body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    line-height: 1.8;
+    color: #333;
+}
+h1 { border-bottom: 2px solid #4A90D9; padding-bottom: 6px; }
+h2 { color: #4A90D9; margin-top: 28px; }
+h3 { color: #555; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #4A90D9; color: white; }
+blockquote { border-left: 4px solid #4A90D9; padding-left: 16px; color: #666; margin: 12px 0; }
+img { max-width: 100%; }
+</style></head>
+<body><hr />
+<p>aliases:
+  - 04-listcomp-class</p>
+<hr />
+<h1>Day 4：列表推导式 + lambda + 类/继承</h1>
+<p>读完约 10 分钟（分两次读也行）。</p>
+<hr />
+<h2>一、列表推导式（Day2 补课，今天应该先学这个）</h2>
+<p>你之前学过了循环：</p>
+<pre><code class="language-python">squares = []
+for x in range(1, 6):
+    squares.append(x ** 2)
+# squares = [1, 4, 9, 16, 25]
+</code></pre>
+<p>列表推导式是同一个逻辑的简写：</p>
+<pre><code class="language-python">squares = [x ** 2 for x in range(1, 6)]
+# 结果完全相同：[1, 4, 9, 16, 25]
+</code></pre>
+<p><strong>语法拆解：</strong></p>
+<pre><code>[对x做什么   for x in 可迭代对象   要不要过滤]
+  ↑                ↑                   ↑
+ x ** 2       for x in range(1,6)     (可选)
+</code></pre>
+<h3>带过滤的</h3>
+<pre><code class="language-python"># 原版循环
+evens = []
+for x in range(10):
+    if x % 2 == 0:
+        evens.append(x)
+
+# 推导式
+evens = [x for x in range(10) if x % 2 == 0]
+# [0, 2, 4, 6, 8]
+</code></pre>
+<h3>Java 对照：Stream API</h3>
+<pre><code class="language-java">// Java
+List&lt;Integer&gt; squares = IntStream.range(1, 6)
+    .map(x -&gt; x * x)
+    .boxed()
+    .collect(Collectors.toList());
+</code></pre>
+<pre><code class="language-python"># Python 推导式
+squares = [x ** 2 for x in range(1, 6)]
+</code></pre>
+<p>推导式更简洁，但不要写太复杂——<strong>超过一层 for 就回去写普通循环。</strong></p>
+<hr />
+<h2>二、lambda：匿名函数</h2>
+<h3>什么时候用</h3>
+<pre><code class="language-python"># 普通函数：有名字，可以反复调用
+def square(x):
+    return x ** 2
+
+# lambda：没名字，用完就扔
+lambda x: x ** 2
+</code></pre>
+<p><strong>lambda 只在你需要一个「只用一次的小函数」时用。</strong> 能写 def 就写 def，别硬用 lambda。</p>
+<h3>语法</h3>
+<pre><code>lambda 参数: 返回值表达式
+</code></pre>
+<p>只能写<strong>一个表达式</strong>（不能写多行、不能写 return、不能写 if 语句）。</p>
+<h3>配合 map/filter 使用</h3>
+<pre><code class="language-python">nums = [1, 2, 3, 4, 5]
+
+# map：对每个元素做操作
+list(map(lambda x: x ** 2, nums))
+# [1, 4, 9, 16, 25]
+
+# filter：保留满足条件的
+list(filter(lambda x: x % 2 == 0, nums))
+# [2, 4]
+</code></pre>
+<p><strong>但说实话：</strong> 列表推导式比 map/filter 更 Pythonic：</p>
+<pre><code class="language-python"># 不推荐
+list(map(lambda x: x ** 2, nums))
+
+# 推荐
+[x ** 2 for x in nums]
+</code></pre>
+<p>结论：了解 lambda 是什么就行，日常能用推导式就用推导式。</p>
+<hr />
+<h2>三、类/继承：你有 Java 基础，这节很快</h2>
+<h3>Python 的类 vs Java 的类</h3>
+<pre><code class="language-java">// Java
+public class Dog {
+    private String name;
+
+    public Dog(String name) {
+        this.name = name;
+    }
+
+    public void bark() {
+        System.out.println(this.name + &quot; 汪汪&quot;);
+    }
+}
+
+Dog d = new Dog(&quot;旺财&quot;);
+d.bark();
+</code></pre>
+<pre><code class="language-python"># Python
+class Dog:
+    def __init__(self, name):      # 构造函数，等于 Java 的 Dog(String name)
+        self.name = name
+
+    def bark(self):                 # 方法，self 等于 Java 的 this
+        print(f&quot;{self.name} 汪汪&quot;)
+
+d = Dog(&quot;旺财&quot;)
+d.bark()
+</code></pre>
+<h3>一一对应</h3>
+<table>
+<thead>
+<tr>
+<th>Java</th>
+<th>Python</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>class Dog {}</code></td>
+<td><code>class Dog:</code></td>
+<td>定义类，Python 用冒号不用花括号</td>
+</tr>
+<tr>
+<td><code>public Dog(...)</code></td>
+<td><code>def __init__(self, ...)</code></td>
+<td>构造函数</td>
+</tr>
+<tr>
+<td><code>this.name</code></td>
+<td><code>self.name</code></td>
+<td>当前实例的成员变量</td>
+</tr>
+<tr>
+<td><code>new Dog()</code></td>
+<td><code>Dog()</code></td>
+<td>创建实例，Python 不需要 new</td>
+</tr>
+<tr>
+<td><code>void bark()</code></td>
+<td><code>def bark(self):</code></td>
+<td>方法，self 必须显式写在参数里</td>
+</tr>
+</tbody>
+</table>
+<h3>你唯一要适应的：<code>self</code> 必须显式写</h3>
+<pre><code class="language-python">class Counter:
+    def __init__(self):
+        self.count = 0       # 初始化成员变量
+
+    def add(self, n):
+        self.count += n      # 用 self.count 访问
+
+    def show(self):
+        print(f&quot;当前计数：{self.count}&quot;)
+
+c = Counter()
+c.add(5)
+c.add(3)
+c.show()    # 当前计数：8
+</code></pre>
+<p><strong>Java 里 this 是可写可不写的（除非重名），Python 里 self 必须写。</strong> 这是最大的习惯差异。</p>
+<h3>继承</h3>
+<pre><code class="language-python">class Animal:
+    def __init__(self, name):
+        self.name = name
+
+    def speak(self):
+        pass
+
+class Dog(Animal):              # ← 继承用括号，等于 Java 的 extends
+    def speak(self):            # 重写父类方法
+        return f&quot;{self.name} 汪汪&quot;
+
+class Cat(Animal):
+    def speak(self):
+        return f&quot;{self.name} 喵喵&quot;
+
+d = Dog(&quot;旺财&quot;)
+c = Cat(&quot;咪咪&quot;)
+print(d.speak())   # 旺财 汪汪
+print(c.speak())   # 咪咪 喵喵
+</code></pre>
+<p><strong>跟 Java 一样：</strong> 继承 → 重写方法 → 多态。</p>
+<hr />
+<h2>当前级别许可</h2>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>列表推导式</td>
+<td>⚠️ 今天学完切片后可以碰，但只做简单推导式</td>
+</tr>
+<tr>
+<td>lambda</td>
+<td>⚠️ 了解即可，不要求手写熟练</td>
+</tr>
+<tr>
+<td>map/filter</td>
+<td>⚠️ 了解即可，日常用推导式代替</td>
+</tr>
+<tr>
+<td>类/<strong>init</strong>/self</td>
+<td>✅ 今天可以学（Java基础好，这节很快）</td>
+</tr>
+<tr>
+<td>继承</td>
+<td>✅ 今天可以学</td>
+</tr>
+</tbody>
+</table>
+<p>相关笔记：<a href="../21-list-deep/theory_21_list_deep.md">列表深入操作</a> · <a href="../16-python-gaps/theory_16_python_gaps.md">推导式进阶 · any/all/sorted</a></p>
+<hr />
+<h2>桥接：把这个 Dog 换成你的 notes-api</h2>
+<p>你笔记里的 Dog 和你的 JsonNoteRepository，是<strong>同一个模式</strong>：</p>
+<pre><code class="language-python"># ── 笔记里的例子 ──               # ── 你项目里的代码 ──
+class Dog:                         class JsonNoteRepository:
+    def __init__(self, name):          def __init__(self, filename):
+        self.name = name                   self.filename = filename
+
+    def bark(self):                      def list_notes(self):
+        print(f&quot;{self.name} 汪汪&quot;)           # 读文件，返回笔记列表
+
+# 创建对象                           # 创建对象
+d = Dog(&quot;旺财&quot;)                      repo = JsonNoteRepository(&quot;notes.json&quot;)
+#     ^ 传字符串&quot;旺财&quot;给 __init__     #              ^ 传字符串路径给 __init__
+
+# 使用方法                           # 使用方法
+d.bark()                             notes = repo.list_notes()
+</code></pre>
+<p><strong>完全一致的结构：</strong></p>
+<pre><code>Dog(&quot;旺财&quot;)                      → 类名(参数) = 造对象，参数传给 __init__
+  → __init__(self, &quot;旺财&quot;)       → self.name = &quot;旺财&quot;
+
+JsonNoteRepository(&quot;notes.json&quot;) → 类名(参数) = 造对象，参数传给 __init__
+  → __init__(self, &quot;notes.json&quot;) → self.filename = &quot;notes.json&quot;
+</code></pre>
+<p>所以当你看到：</p>
+<pre><code class="language-python">repo = JsonNoteRepository(&quot;notes.json&quot;)
+service = NoteService(repo)
+</code></pre>
+<p>读作：</p>
+<pre><code class="language-python"># 第1行：造一个&quot;JSON仓库&quot;对象，告诉它&quot;你的文件是 notes.json&quot;
+repo = JsonNoteRepository(&quot;notes.json&quot;)
+
+# 第2行：造一个&quot;笔记服务&quot;对象，把仓库塞给它
+# NoteService 需要仓库才能干活——它不自己造仓库，而是外面传进来
+service = NoteService(repo)
+</code></pre>
+<blockquote>
+<p><strong>关键认知：<code>类名(参数)</code> = 造一个对象，参数传给 <code>__init__</code>。不需要 <code>new</code> 关键字。</strong></p>
+</blockquote>
+<h3>一句话串起来</h3>
+<pre><code>模具（类）        = 配方（告诉你怎么造）
+产品（对象）      = 实际造出来的东西
+__init__         = &quot;造的时候要准备什么&quot;
+self             = &quot;这个产品自己&quot;
+对象.方法()       = &quot;让这个产品做一件事&quot;
+</code></pre></body>
+</html>
