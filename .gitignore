@@ -15,10 +15,12 @@ __pycache__/
 # Temp & Archive
 _archive/
 temp-project/
+tmp/
 tmp_ocr/
 contacts_final/
 vue-projects/
 Templates/
+实验报告/
 
 # Docs & binaries
 *.docx

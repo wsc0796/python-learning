@@ -285,6 +285,48 @@ result = apply(square, 4)
 print(result)       # 16
 ```
 
+### 实际应用场景
+
+**场景一：内置函数搭档（`sorted` / `map` / `filter`）**
+
+```python
+# sorted 的 key 参数 — 传一个函数进去
+words = ["banana", "apple", "cherry"]
+sorted(words, key=len)     # ['apple', 'banana', 'cherry'] — 按长度排
+
+# map — 对每个元素执行一个函数
+nums = [1, 2, 3, 4]
+list(map(str, nums))       # ['1', '2', '3', '4']
+```
+
+**场景二：命令字典（替代长 `if...elif`）**
+
+```python
+def add():
+    print("添加学生")
+
+def query():
+    print("查询学生")
+
+# 字典的值是函数
+menu = {"1": add, "2": query}
+
+choice = input("选择操作(1/2): ")
+func = menu.get(choice)     # 取出函数
+if func:
+    func()                   # 调用
+```
+
+**场景三：FastAPI 路由注册（本质也是函数当参数传）**
+
+```python
+@app.get("/students")        # ← 把函数"注册"给 FastAPI
+def get_students():          # ← 函数被当成参数传给了装饰器
+    return ["小明", "小红"]
+```
+
+> Java 里做这件事要包一层 `interface` + 匿名内部类，Python 直接把函数名扔进去就行。
+
 ---
 
 ## 总结
