@@ -453,6 +453,60 @@ print(let_it_fly(Airplane())) # 会怎样？
 print(let_it_fly(Stone()))    # 会怎样？
 ```
 
+### 鸭子类型的另一面：函数也是鸭子
+
+上面的例子都是"传对象，调方法"。但鸭子类型不止用于类——**函数参数也适用**。只要传进来的东西"能调用"，Python 就不管它是什么类型。
+
+```python
+# 只要是可调用对象，run 一律接受
+def run(func, *args, **kwargs):
+    print("开始执行")
+    result = func(*args, **kwargs)
+    print("执行结束")
+    return result
+
+# 以下全是不同的"类型"，但都能传进去
+def say_hello(name):           # 普通函数
+    return f"你好, {name}!"
+
+run(say_hello, "李四")         # ✅
+run(lambda x: x * 2, 5)        # ✅ lambda
+run(print, "hello")             # ✅ 内置函数
+
+class Greeter:                  # 带 __call__ 的对象
+    def __call__(self, name):
+        return f"你好, {name}!"
+
+run(Greeter(), "王五")          # ✅ 对象也能当函数用
+```
+
+**核心**：`run()` 不检查 `func` 的类型，只做一件事——`func()`。这和 `process_data(parser)` 不检查 `parser` 类型、只调 `parser.parse()` 是一模一样的逻辑。
+
+### `callable()` — 提前问一下"你能调吗"
+
+```python
+callable(print)       # True — 内置函数，能调
+callable(lambda: 1)   # True — lambda，能调
+callable("hello")     # False — 字符串不能调
+callable(Stone())     # False — 石头不能调
+
+# 用法：先问再调，避免崩溃
+def safe_run(func, *args):
+    if callable(func):
+        return func(*args)
+    else:
+        print(f"{func} 不可调用")
+```
+
+### Python 内置到处是鸭子类型
+
+| 你写过的 | 鸭子类型在哪 |
+|---------|------------|
+| `sorted(words, key=len)` | `key` 只要能用 `key(元素)` 就行，不看类型 |
+| `map(str, nums)` | `str` 是类名，但能调就传 |
+| `@app.get("/")` | FastAPI 把函数当参数存，请求来了就调 |
+| `" ".join(iterable)` | 参数只要可迭代就行，list/tuple/set 都能传 |
+
 ---
 
 ## 四、魔法方法：为什么 `print(obj)` 能打印出内容

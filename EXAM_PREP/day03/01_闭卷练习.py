@@ -6,13 +6,13 @@ Day 3 闭卷练习：函数专项。
 # 题 1（考点：函数定义和返回值，建议 5 分钟）
 # 定义函数 add，返回两个数的和。
 def task01(a: int, b: int) -> int:
-    pass
+    return a + b
 
 
 # 题 2（考点：默认参数，建议 6 分钟）
 # 定义函数 greet，name 必填，prefix 默认值为 "你好"。
 def task02(name: str, prefix: str = "你好") -> str:
-    pass
+    print(f"{prefix}, {name}")
 
 
 # 题 3（考点：关键字参数，建议 6 分钟）
